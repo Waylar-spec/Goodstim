@@ -1,26 +1,125 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* Brand colors */
+  --color-primary: #101021;
+  --color-tech-blue: #252537;
+  --color-vibrant-teal: #00D57A;
+  --color-soft-mint: #E5F6EF;
+  --color-charcoal: #2C2D2E;
+
+  /* Surfaces */
+  --color-surface: #faf9fa;
+  --color-surface-white: #FFFFFF;
+  --color-surface-container: #efedee;
+  --color-surface-container-low: #f4f3f4;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-variant: #e3e2e3;
+  --color-surface-dim: #dbdadb;
+
+  /* Text / on-color */
+  --color-on-background: #1b1c1d;
+  --color-on-surface: #1b1c1d;
+  --color-on-surface-variant: #47464c;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #8d8ca2;
+  --color-on-secondary: #ffffff;
+  --color-on-secondary-container: #00723e;
+
+  /* Semantic */
+  --color-secondary: #006d3c;
+  --color-outline: #78767d;
+  --color-outline-variant: #c8c5cd;
+  --color-error: #ba1a1a;
+
+  /* Extended palette from design system */
+  --color-primary-container: #252537;
+  --color-secondary-container: #51fd9d;
+  --color-surface-container-high: #e9e8e9;
+  --color-surface-container-highest: #e3e2e3;
+  --color-surface-tint: #5d5c71;
+  --color-inverse-surface: #2f3031;
+  --color-inverse-on-surface: #f2f0f1;
+  --color-inverse-primary: #c6c4dc;
+  --color-tertiary: #071511;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #1b2a26;
+  --color-on-tertiary-container: #81928c;
+
+  /* Fonts */
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-montserrat: "Montserrat", sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+@keyframes pulse-teal {
+  0%   { box-shadow: 0 0 0 0px rgba(0, 213, 122, 0.4); }
+  100% { box-shadow: 0 0 0 15px rgba(0, 213, 122, 0); }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.pulse-teal {
+  animation: pulse-teal 2s infinite;
+}
+
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined";
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  font-size: 24px;
+  line-height: 1;
+  display: inline-block;
+  user-select: none;
+}
+
+@keyframes vns-pulse-anim {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50%       { opacity: 0.8; transform: scale(1.05); }
+}
+.vns-pulse { animation: vns-pulse-anim 3s infinite ease-in-out; }
+
+@keyframes pulse-active-anim {
+  0%   { box-shadow: 0 0 0 0 rgba(0, 213, 122, 0.4); }
+  70%  { box-shadow: 0 0 0 10px rgba(0, 213, 122, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 213, 122, 0); }
+}
+.pulse-active { animation: pulse-active-anim 2s infinite; }
+
+.input-focus-effect:focus {
+  background-color: white !important;
+  border-color: #00D57A !important;
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(0, 213, 122, 0.1);
+}
+
+/* Tactile press — 4px y-offset shadow collapses on active (per design spec) */
+.btn-press {
+  box-shadow: 0 4px 0 rgba(37, 37, 55, 0.22), 0 4px 12px rgba(37, 37, 55, 0.15);
+  transition: box-shadow 0.1s ease, transform 0.1s ease;
+}
+.btn-press:active {
+  box-shadow: 0 0px 0 rgba(37, 37, 55, 0), 0 2px 6px rgba(37, 37, 55, 0.1);
+  transform: translateY(3px);
+}
+
+/* VNS intensity progress bar — gradient Tech Blue → Teal, 12px height */
+.vns-progress-track {
+  height: 12px;
+  border-radius: 9999px;
+  background: #e9e8e9;
+  overflow: hidden;
+}
+.vns-progress-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #252537 0%, #00D57A 100%);
+  transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #faf9fa;
+  color: #1b1c1d;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
