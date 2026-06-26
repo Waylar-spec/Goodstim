@@ -1,9 +1,12 @@
 import { neon } from "@neondatabase/serverless";
 
-const sql = neon(process.env.DATABASE_URL!);
-export default sql;
+export function getDb() {
+  if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL not set");
+  return neon(process.env.DATABASE_URL);
+}
 
 export async function initDb() {
+  const sql = getDb();
   await sql`
     CREATE TABLE IF NOT EXISTS orders (
       id SERIAL PRIMARY KEY,

@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 import { NextRequest, NextResponse } from "next/server";
-import sql from "../../../lib/db";
+import { getDb } from "../../../lib/db";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -26,6 +26,7 @@ export async function POST(req: NextRequest) {
 
     // Zapisz zamówienie do bazy
     try {
+      const sql = getDb();
       await sql`
         INSERT INTO orders (
           order_number, stripe_payment_intent_id, status,
