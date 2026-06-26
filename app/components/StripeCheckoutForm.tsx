@@ -14,10 +14,11 @@ interface Props {
   totalGrosze: number;
   email: string;
   firstName: string;
+  metadata?: Record<string, string>;
   onSuccess: () => void;
 }
 
-export default function StripeCheckoutForm({ totalGrosze, email, firstName, onSuccess }: Props) {
+export default function StripeCheckoutForm({ totalGrosze, email, firstName, metadata, onSuccess }: Props) {
   const stripe = useStripe();
   const elements = useElements();
   const [paymentRequest, setPaymentRequest] = useState<PaymentRequest | null>(null);
@@ -40,10 +41,7 @@ export default function StripeCheckoutForm({ totalGrosze, email, firstName, onSu
       const res = await fetch("/api/stripe/intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: totalGrosze,
-          metadata: { customer_email: email, customer_name: firstName },
-        }),
+        body: JSON.stringify({ amount: totalGrosze, metadata }),
       });
       const { clientSecret, error: fetchErr } = await res.json();
       if (fetchErr) { e.complete("fail"); return; }

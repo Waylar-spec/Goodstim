@@ -18,7 +18,11 @@ function genOrderNumber() {
 export default function CheckoutPage() {
   const [delivery, setDelivery] = useState<Delivery>("courier");
   const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [postalCode, setPostalCode] = useState("");
   const [orderState, setOrderState] = useState<"idle" | "ok">("idle");
   const { items, total, removeFromCart, setQty } = useCart();
 
@@ -109,30 +113,23 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-semibold text-on-surface-variant px-1">Nazwisko</label>
-                  <input className="bg-soft-mint rounded-xl px-4 py-3 border-none input-focus-effect transition-all text-on-surface" placeholder="np. Kowalski" type="text" />
+                  <input required value={lastName} onChange={(e) => setLastName(e.target.value)} className="bg-soft-mint rounded-xl px-4 py-3 border-none input-focus-effect transition-all text-on-surface" placeholder="np. Kowalski" type="text" />
                 </div>
                 <div className="md:col-span-2 flex flex-col gap-2">
                   <label className="text-sm font-semibold text-on-surface-variant px-1">E-mail (potwierdzenie zamówienia)</label>
-                  <input
-                    required
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="bg-soft-mint rounded-xl px-4 py-3 border-none input-focus-effect transition-all text-on-surface"
-                    placeholder="jan@example.com"
-                  />
+                  <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="bg-soft-mint rounded-xl px-4 py-3 border-none input-focus-effect transition-all text-on-surface" placeholder="jan@example.com" />
                 </div>
                 <div className="md:col-span-2 flex flex-col gap-2">
                   <label className="text-sm font-semibold text-on-surface-variant px-1">Adres dostawy</label>
-                  <input className="bg-soft-mint rounded-xl px-4 py-3 border-none input-focus-effect transition-all text-on-surface" placeholder="Ulica i numer" type="text" />
+                  <input required value={address} onChange={(e) => setAddress(e.target.value)} className="bg-soft-mint rounded-xl px-4 py-3 border-none input-focus-effect transition-all text-on-surface" placeholder="Ulica i numer" type="text" />
                 </div>
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-semibold text-on-surface-variant px-1">Miasto</label>
-                  <input className="bg-soft-mint rounded-xl px-4 py-3 border-none input-focus-effect transition-all text-on-surface" placeholder="np. Warszawa" type="text" />
+                  <input required value={city} onChange={(e) => setCity(e.target.value)} className="bg-soft-mint rounded-xl px-4 py-3 border-none input-focus-effect transition-all text-on-surface" placeholder="np. Warszawa" type="text" />
                 </div>
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-semibold text-on-surface-variant px-1">Kod pocztowy</label>
-                  <input className="bg-soft-mint rounded-xl px-4 py-3 border-none input-focus-effect transition-all text-on-surface" placeholder="np. 00-001" type="text" />
+                  <input required value={postalCode} onChange={(e) => setPostalCode(e.target.value)} className="bg-soft-mint rounded-xl px-4 py-3 border-none input-focus-effect transition-all text-on-surface" placeholder="np. 00-001" type="text" />
                 </div>
               </form>
             </section>
@@ -179,7 +176,23 @@ export default function CheckoutPage() {
               <div className="bg-white rounded-2xl border border-outline-variant/20 p-6">
                 {amountGrosze > 0 ? (
                   <StripeProvider amount={amountGrosze}>
-                    <StripeCheckoutForm totalGrosze={amountGrosze} email={email} firstName={firstName} onSuccess={sendConfirmation} />
+                    <StripeCheckoutForm
+                      totalGrosze={amountGrosze}
+                      email={email}
+                      firstName={firstName}
+                      metadata={{
+                        customer_name: `${firstName} ${lastName}`.trim(),
+                        customer_email: email,
+                        address_line1: address,
+                        city,
+                        postal_code: postalCode,
+                        order_number: genOrderNumber(),
+                        items_json: JSON.stringify(items.map(({ product, qty }) => ({
+                          name: product.name, subtitle: product.subtitle, qty, price: product.price,
+                        }))),
+                      }}
+                      onSuccess={sendConfirmation}
+                    />
                   </StripeProvider>
                 ) : (
                   <p className="text-sm text-on-surface-variant text-center py-4">Koszyk jest pusty.</p>
