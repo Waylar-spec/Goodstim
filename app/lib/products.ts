@@ -14,7 +14,7 @@ export const PRODUCTS: Product[] = [
     id: "vns-one",
     name: "GoodStim VNS One",
     subtitle: "Edycja Deep Relax",
-    price: 1299,
+    price: 550,
     image: "/product.png",
     category: "device",
     description: "Zaawansowany stymulator nerwu błędnego. 4 tryby, certyfikaty CE / FCC / RoHS.",
