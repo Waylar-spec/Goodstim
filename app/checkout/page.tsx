@@ -32,6 +32,7 @@ export default function CheckoutPage() {
   const [selectedLocker, setSelectedLocker] = useState<Locker | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const [newsletterAccepted, setNewsletterAccepted] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [orderState, setOrderState] = useState<"idle" | "ok">("idle");
   const { items, total, removeFromCart, setQty } = useCart();
@@ -60,8 +61,15 @@ export default function CheckoutPage() {
     return true;
   }
 
-  function sendConfirmation() {
-    // Email wysyłany przez webhook Stripe (payment_intent.succeeded) — nie duplikujemy tutaj
+  async function sendConfirmation() {
+    // Email zamówieniowy wysyłany przez webhook Stripe — nie duplikujemy tutaj
+    if (newsletterAccepted && email) {
+      await fetch("/api/email/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+    }
     setOrderState("ok");
   }
 
@@ -274,6 +282,13 @@ export default function CheckoutPage() {
                     Zapoznałem/am się z{" "}
                     <Link href="/polityka-prywatnosci" target="_blank" className="text-primary underline hover:text-vibrant-teal">Polityką prywatności</Link>
                     {" "}i wyrażam zgodę na przetwarzanie moich danych osobowych w celu realizacji zamówienia (podstawa: art. 6 ust. 1 lit. b RODO). <span className="text-red-500">*</span>
+                  </span>
+                </label>
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <input type="checkbox" checked={newsletterAccepted} onChange={(e) => setNewsletterAccepted(e.target.checked)}
+                    className="mt-1 w-4 h-4 rounded accent-vibrant-teal flex-shrink-0 cursor-pointer" />
+                  <span className="text-sm text-on-surface-variant leading-relaxed">
+                    Chcę dołączyć do newslettera GoodStim i otrzymywać informacje o nowościach oraz ofertach specjalnych. Zgodę mogę wycofać w dowolnym momencie.
                   </span>
                 </label>
                 <p className="text-xs text-on-surface-variant/60 px-1">* Pola obowiązkowe</p>
