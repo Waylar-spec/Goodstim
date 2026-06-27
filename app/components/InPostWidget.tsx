@@ -73,8 +73,10 @@ export default function InPostWidget({ onSelect, selected: selectedProp }: Props
 
     const script = document.createElement("script");
     script.id = "inpost-js";
-    script.src = `https://geowidget.inpost.pl/inpost-geowidget.js?token=${token}`;
+    script.src = "https://geowidget.inpost.pl/inpost-geowidget.js";
+    script.setAttribute("token", token);
     script.async = true;
+    script.defer = true;
     // onload as fallback — fires after easyPackAsyncInit in most cases
     script.addEventListener("load", () => {
       script.dataset.loaded = "1";
