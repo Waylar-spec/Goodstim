@@ -26,9 +26,9 @@ export default function RegulamínPage() {
             <h2 className="font-montserrat text-xl font-semibold text-primary mb-3">§ 1. Postanowienia ogólne</h2>
             <p>Sklep internetowy dostępny pod adresem <strong>goodstim.pl</strong> prowadzony jest przez osobę fizyczną prowadzącą działalność gospodarczą:</p>
             <ul className="mt-3 space-y-1 list-none pl-0">
-              <li><strong>Firma:</strong> [Nazwa JDG]</li>
-              <li><strong>NIP:</strong> [NIP]</li>
-              <li><strong>Adres:</strong> [Adres]</li>
+              <li><strong>Firma:</strong> Wojciech Dymek diagnostyka i leczenie bólu</li>
+              <li><strong>NIP:</strong> 7182160692</li>
+              <li><strong>Adres:</strong> ul. Wyszyńskiego 2/5, 18-400 Łomża</li>
               <li><strong>E-mail:</strong> kontakt@goodstim.pl</li>
             </ul>
             <p className="mt-3">Niniejszy Regulamin określa zasady korzystania ze Sklepu, składania zamówień, realizacji dostaw oraz prawa Klienta, w tym prawo do odstąpienia od umowy.</p>

@@ -26,9 +26,9 @@ export default function PolitykaPrywatnosci() {
             <h2 className="font-montserrat text-xl font-semibold text-primary mb-3">1. Administrator danych osobowych</h2>
             <p>Administratorem Twoich danych osobowych jest:</p>
             <ul className="mt-3 space-y-1 list-none pl-0">
-              <li><strong>Firma:</strong> [Nazwa JDG]</li>
-              <li><strong>NIP:</strong> [NIP]</li>
-              <li><strong>Adres:</strong> [Adres]</li>
+              <li><strong>Firma:</strong> Wojciech Dymek diagnostyka i leczenie bólu</li>
+              <li><strong>NIP:</strong> 7182160692</li>
+              <li><strong>Adres:</strong> ul. Wyszyńskiego 2/5, 18-400 Łomża</li>
               <li><strong>E-mail:</strong> kontakt@goodstim.pl</li>
             </ul>
           </section>
