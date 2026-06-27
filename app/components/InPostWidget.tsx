@@ -13,99 +13,98 @@ interface Props {
   selected?: Locker | null;
 }
 
-declare global {
-  interface Window {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    easyPackAsyncInit?: () => void;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    easyPack?: any;
-  }
+// v5 GeoWidget point payload (event.detail)
+interface GeoPoint {
+  name: string;
+  address?: { line1?: string; line2?: string };
+  address_details?: { city?: string };
 }
 
-const INPOST_CONFIG = {
-  defaultLocale: "pl",
-  mapType: "osm",
-  searchType: "osm",
-  points: { types: ["parcel_locker"] },
-  map: { initialTypes: ["parcel_locker"] },
-};
+function ensureAssets(token: string) {
+  if (!document.getElementById("inpost-css")) {
+    const link = document.createElement("link");
+    link.id = "inpost-css";
+    link.rel = "stylesheet";
+    link.href = "https://geowidget.inpost.pl/inpost-geowidget.css";
+    document.head.appendChild(link);
+  }
+  if (!document.getElementById("inpost-js")) {
+    const script = document.createElement("script");
+    script.id = "inpost-js";
+    script.src = "https://geowidget.inpost.pl/inpost-geowidget.js";
+    script.defer = true;
+    document.head.appendChild(script);
+  }
+}
 
 export default function InPostWidget({ onSelect, selected: selectedProp }: Props) {
   const selected = selectedProp ?? null;
   const [open, setOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState(false);
-  const mapRendered = useRef(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const onSelectRef = useRef(onSelect);
   onSelectRef.current = onSelect;
 
   useEffect(() => {
+    if (!open) return;
+
     const token = process.env.NEXT_PUBLIC_INPOST_TOKEN ?? "";
     if (!token) { setLoadError(true); return; }
+    if (typeof window === "undefined" || !("customElements" in window)) { setLoadError(true); return; }
 
-    // Already initialized
-    if (window.easyPack) { setLoaded(true); return; }
+    setLoaded(false);
+    setLoadError(false);
+    ensureAssets(token);
 
-    // CSS
-    if (!document.getElementById("inpost-css")) {
-      const link = document.createElement("link");
-      link.id = "inpost-css";
-      link.rel = "stylesheet";
-      link.href = "https://geowidget.inpost.pl/inpost-geowidget.css";
-      document.head.appendChild(link);
-    }
+    let widget: HTMLElement | null = null;
+    let cancelled = false;
 
-    function onReady(setLoadedFn: (v: boolean) => void, setErrorFn: (v: boolean) => void) {
-      // Poll until window.easyPack appears (max 8s)
-      let attempts = 0;
-      const interval = setInterval(() => {
-        attempts++;
-        if (window.easyPack) {
-          clearInterval(interval);
-          try { window.easyPack.init(INPOST_CONFIG); } catch {}
-          setLoadedFn(true);
-        } else if (attempts > 80) {
-          clearInterval(interval);
-          setErrorFn(true);
-        }
-      }, 100);
-    }
+    const handlePoint = (e: Event) => {
+      const detail = (e as CustomEvent<GeoPoint>).detail;
+      if (!detail) return;
+      onSelectRef.current({
+        name: detail.name,
+        address: {
+          line1: detail.address?.line1 ?? "",
+          city: detail.address_details?.city ?? detail.address?.line2 ?? "",
+        },
+      });
+      setOpen(false);
+    };
 
-    const existing = document.getElementById("inpost-js");
-    if (existing) {
-      onReady(setLoaded, setLoadError);
-      return;
-    }
+    // Fail-safe: if the custom element never registers, show error
+    const errTimer = setTimeout(() => { if (!cancelled && !loaded) setLoadError(true); }, 10000);
 
-    const script = document.createElement("script");
-    script.id = "inpost-js";
-    script.src = "https://geowidget.inpost.pl/inpost-geowidget.js";
-    script.setAttribute("token", token);
-    script.async = true;
-    script.defer = true;
-    script.addEventListener("load", () => onReady(setLoaded, setLoadError));
-    script.addEventListener("error", () => setLoadError(true));
-    document.body.appendChild(script);
-  }, []);
+    window.customElements
+      .whenDefined("inpost-geowidget")
+      .then(() => {
+        if (cancelled || !containerRef.current) return;
+        clearTimeout(errTimer);
 
-  // Render map when modal opens and script is ready
-  useEffect(() => {
-    if (!open || !loaded || mapRendered.current) return;
-    mapRendered.current = true;
-    const t = setTimeout(() => {
-      if (!window.easyPack) return;
-      try {
-        window.easyPack.mapWidget("inpost-map", (point: Locker) => {
-          setOpen(false);
-          mapRendered.current = false;
-          onSelectRef.current(point);
-        });
-      } catch {}
-    }, 200);
-    return () => clearTimeout(t);
+        widget = document.createElement("inpost-geowidget");
+        widget.setAttribute("token", token);
+        widget.setAttribute("language", "pl");
+        widget.setAttribute("config", "parcelCollect");
+        widget.setAttribute("onpoint", "onpointselect");
+        widget.style.width = "100%";
+        widget.style.height = "500px";
+        widget.style.display = "block";
+        widget.addEventListener("onpointselect", handlePoint);
+
+        containerRef.current.innerHTML = "";
+        containerRef.current.appendChild(widget);
+        setLoaded(true);
+      })
+      .catch(() => { if (!cancelled) setLoadError(true); });
+
+    return () => {
+      cancelled = true;
+      clearTimeout(errTimer);
+      if (widget) widget.removeEventListener("onpointselect", handlePoint);
+      if (containerRef.current) containerRef.current.innerHTML = "";
+    };
   }, [open, loaded]);
-
-  useEffect(() => { if (!open) mapRendered.current = false; }, [open]);
 
   return (
     <div className="space-y-3">
@@ -114,9 +113,9 @@ export default function InPostWidget({ onSelect, selected: selectedProp }: Props
           <div className="flex items-center gap-3">
             <Icon name="inventory_2" className="text-secondary" />
             <div>
-              <p className="text-sm font-semibold text-primary">{selected.name}</p>
+              <p className="text-sm font-semibold text-primary">Paczkomat {selected.name}</p>
               <p className="text-xs text-on-surface-variant">
-                {selected.address?.line1}, {selected.address?.city}
+                {selected.address?.line1}{selected.address?.city ? `, ${selected.address.city}` : ""}
               </p>
             </div>
           </div>
@@ -141,8 +140,8 @@ export default function InPostWidget({ onSelect, selected: selectedProp }: Props
 
       {open && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl overflow-hidden w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+          <div className="bg-white rounded-2xl overflow-hidden w-full max-w-3xl max-h-[85vh] flex flex-col shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
               <h3 className="font-montserrat font-semibold text-primary">Wybierz paczkomat InPost</h3>
               <button type="button" onClick={() => setOpen(false)}
                 className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-500"
@@ -151,26 +150,25 @@ export default function InPostWidget({ onSelect, selected: selectedProp }: Props
               </button>
             </div>
 
-            {loadError && (
-              <div className="flex-1 flex flex-col items-center justify-center py-16 gap-3 text-on-surface-variant text-center px-8">
-                <Icon name="wifi_off" className="text-[32px]" />
-                <p className="text-sm">Nie można załadować mapy.<br />Wybierz dostawę kurierem lub odśwież stronę.</p>
-              </div>
-            )}
-
-            {!loaded && !loadError && (
-              <div className="flex-1 flex items-center justify-center py-16">
-                <div className="flex flex-col items-center gap-3 text-on-surface-variant">
-                  <div className="w-8 h-8 border-2 border-secondary border-t-transparent rounded-full animate-spin" />
-                  <p className="text-sm">Ładowanie mapy…</p>
+            <div className="relative flex-1 min-h-[500px]">
+              {loadError && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-on-surface-variant text-center px-8 bg-white">
+                  <Icon name="wifi_off" className="text-[32px]" />
+                  <p className="text-sm">Nie można załadować mapy.<br />Wybierz dostawę kurierem lub odśwież stronę.</p>
                 </div>
-              </div>
-            )}
+              )}
 
-            <div
-              id="inpost-map"
-              style={{ height: "500px", width: "100%", display: loaded && !loadError ? "block" : "none" }}
-            />
+              {!loaded && !loadError && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white">
+                  <div className="flex flex-col items-center gap-3 text-on-surface-variant">
+                    <div className="w-8 h-8 border-2 border-secondary border-t-transparent rounded-full animate-spin" />
+                    <p className="text-sm">Ładowanie mapy…</p>
+                  </div>
+                </div>
+              )}
+
+              <div ref={containerRef} className="w-full h-full min-h-[500px]" />
+            </div>
           </div>
         </div>
       )}
