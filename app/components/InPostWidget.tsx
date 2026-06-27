@@ -30,10 +30,6 @@ const INPOST_CONFIG = {
   map: { initialTypes: ["parcel_locker"] },
 };
 
-function initEasyPack() {
-  try { window.easyPack?.init(INPOST_CONFIG); } catch {}
-}
-
 export default function InPostWidget({ onSelect, selected: selectedProp }: Props) {
   const selected = selectedProp ?? null;
   const [open, setOpen] = useState(false);
@@ -43,12 +39,11 @@ export default function InPostWidget({ onSelect, selected: selectedProp }: Props
   const onSelectRef = useRef(onSelect);
   onSelectRef.current = onSelect;
 
-  // Load InPost script once
   useEffect(() => {
     const token = process.env.NEXT_PUBLIC_INPOST_TOKEN ?? "";
     if (!token) { setLoadError(true); return; }
 
-    // Already ready
+    // Already initialized
     if (window.easyPack) { setLoaded(true); return; }
 
     // CSS
@@ -60,16 +55,27 @@ export default function InPostWidget({ onSelect, selected: selectedProp }: Props
       document.head.appendChild(link);
     }
 
-    // If script already exists, wait for it
-    const existing = document.getElementById("inpost-js") as HTMLScriptElement | null;
-    if (existing) {
-      if (existing.dataset.loaded) { initEasyPack(); setLoaded(true); }
-      else { existing.addEventListener("load", () => { initEasyPack(); setLoaded(true); }); }
-      return;
+    function onReady(setLoadedFn: (v: boolean) => void, setErrorFn: (v: boolean) => void) {
+      // Poll until window.easyPack appears (max 8s)
+      let attempts = 0;
+      const interval = setInterval(() => {
+        attempts++;
+        if (window.easyPack) {
+          clearInterval(interval);
+          try { window.easyPack.init(INPOST_CONFIG); } catch {}
+          setLoadedFn(true);
+        } else if (attempts > 80) {
+          clearInterval(interval);
+          setErrorFn(true);
+        }
+      }, 100);
     }
 
-    // Set async init callback BEFORE appending script
-    window.easyPackAsyncInit = () => { initEasyPack(); setLoaded(true); };
+    const existing = document.getElementById("inpost-js");
+    if (existing) {
+      onReady(setLoaded, setLoadError);
+      return;
+    }
 
     const script = document.createElement("script");
     script.id = "inpost-js";
@@ -77,38 +83,29 @@ export default function InPostWidget({ onSelect, selected: selectedProp }: Props
     script.setAttribute("token", token);
     script.async = true;
     script.defer = true;
-    // onload as fallback — fires after easyPackAsyncInit in most cases
-    script.addEventListener("load", () => {
-      script.dataset.loaded = "1";
-      if (!window.easyPack) return; // easyPackAsyncInit already handled it
-      initEasyPack();
-      setLoaded(true);
-    });
+    script.addEventListener("load", () => onReady(setLoaded, setLoadError));
     script.addEventListener("error", () => setLoadError(true));
     document.body.appendChild(script);
   }, []);
 
-  // Render map widget once modal opens AND script is ready
+  // Render map when modal opens and script is ready
   useEffect(() => {
     if (!open || !loaded || mapRendered.current) return;
     mapRendered.current = true;
-
-    // Small delay to let the modal DOM paint
     const t = setTimeout(() => {
       if (!window.easyPack) return;
-      window.easyPack.mapWidget("inpost-map", (point: Locker) => {
-        setOpen(false);
-        mapRendered.current = false;
-        onSelectRef.current(point);
-      });
-    }, 150);
+      try {
+        window.easyPack.mapWidget("inpost-map", (point: Locker) => {
+          setOpen(false);
+          mapRendered.current = false;
+          onSelectRef.current(point);
+        });
+      } catch {}
+    }, 200);
     return () => clearTimeout(t);
   }, [open, loaded]);
 
-  // Reset map render flag when closed
-  useEffect(() => {
-    if (!open) mapRendered.current = false;
-  }, [open]);
+  useEffect(() => { if (!open) mapRendered.current = false; }, [open]);
 
   return (
     <div className="space-y-3">
@@ -123,9 +120,7 @@ export default function InPostWidget({ onSelect, selected: selectedProp }: Props
               </p>
             </div>
           </div>
-          <button onClick={() => setOpen(true)} className="text-xs text-secondary font-semibold hover:underline">
-            Zmień
-          </button>
+          <button onClick={() => setOpen(true)} className="text-xs text-secondary font-semibold hover:underline">Zmień</button>
         </div>
       ) : (
         <button
@@ -150,7 +145,7 @@ export default function InPostWidget({ onSelect, selected: selectedProp }: Props
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
               <h3 className="font-montserrat font-semibold text-primary">Wybierz paczkomat InPost</h3>
               <button type="button" onClick={() => setOpen(false)}
-                className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-500 transition-colors"
+                className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-500"
               >
                 <Icon name="close" />
               </button>
@@ -159,7 +154,7 @@ export default function InPostWidget({ onSelect, selected: selectedProp }: Props
             {loadError && (
               <div className="flex-1 flex flex-col items-center justify-center py-16 gap-3 text-on-surface-variant text-center px-8">
                 <Icon name="wifi_off" className="text-[32px]" />
-                <p className="text-sm">Nie można załadować mapy.<br />Wybierz dostawę kurierem lub spróbuj ponownie.</p>
+                <p className="text-sm">Nie można załadować mapy.<br />Wybierz dostawę kurierem lub odśwież stronę.</p>
               </div>
             )}
 
