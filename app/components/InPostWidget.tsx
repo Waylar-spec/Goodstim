@@ -22,17 +22,34 @@ declare global {
   }
 }
 
-export default function InPostWidget({ onSelect, selected: selectedProp }: Props) {
-  const [open, setOpen] = useState(false);
-  const selected = selectedProp ?? null;
-  const [loaded, setLoaded] = useState(false);
-  const mapRef = useRef<HTMLDivElement>(null);
-  const widgetRef = useRef<unknown>(null);
+const INPOST_CONFIG = {
+  defaultLocale: "pl",
+  mapType: "osm",
+  searchType: "osm",
+  points: { types: ["parcel_locker"] },
+  map: { initialTypes: ["parcel_locker"] },
+};
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
+let scriptLoading = false;
 
-    const token = process.env.NEXT_PUBLIC_INPOST_TOKEN ?? "";
+function loadInPostScript(token: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    // Already initialized
+    if (window.easyPack) {
+      resolve();
+      return;
+    }
+
+    // Script already in DOM, wait for it
+    const existing = document.getElementById("inpost-js");
+    if (existing) {
+      existing.addEventListener("load", () => {
+        window.easyPack?.init(INPOST_CONFIG);
+        resolve();
+      });
+      existing.addEventListener("error", reject);
+      return;
+    }
 
     if (!document.getElementById("inpost-css")) {
       const link = document.createElement("link");
@@ -42,31 +59,54 @@ export default function InPostWidget({ onSelect, selected: selectedProp }: Props
       document.head.appendChild(link);
     }
 
-    if (!document.getElementById("inpost-js")) {
-      window.easyPackAsyncInit = () => {
-        window.easyPack?.init({ defaultLocale: "pl", mapType: "osm", searchType: "osm", points: { types: ["parcel_locker"] }, map: { initialTypes: ["parcel_locker"] } });
-        setLoaded(true);
-      };
-      const script = document.createElement("script");
-      script.id = "inpost-js";
-      script.src = `https://geowidget.inpost.pl/inpost-geowidget.js?token=${token}`;
-      script.async = true;
-      document.body.appendChild(script);
-    } else if (window.easyPack) {
-      setLoaded(true);
+    const script = document.createElement("script");
+    script.id = "inpost-js";
+    script.src = `https://geowidget.inpost.pl/inpost-geowidget.js?token=${token}`;
+    script.async = true;
+
+    // easyPackAsyncInit is called by the InPost script when it's ready
+    window.easyPackAsyncInit = () => {
+      window.easyPack?.init(INPOST_CONFIG);
+      resolve();
+    };
+
+    script.addEventListener("error", () => {
+      reject(new Error("Nie udało się załadować skryptu InPost"));
+    });
+
+    document.body.appendChild(script);
+  });
+}
+
+export default function InPostWidget({ onSelect, selected: selectedProp }: Props) {
+  const [open, setOpen] = useState(false);
+  const selected = selectedProp ?? null;
+  const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const mapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const token = process.env.NEXT_PUBLIC_INPOST_TOKEN ?? "";
+    if (!token) {
+      setLoadError(true);
+      return;
     }
+
+    loadInPostScript(token)
+      .then(() => setLoaded(true))
+      .catch(() => setLoadError(true));
   }, []);
 
   function openMap() {
     setOpen(true);
     if (!loaded || !window.easyPack) return;
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       if (!mapRef.current) return;
-      widgetRef.current = window.easyPack.mapWidget("inpost-map", (point: Locker) => {
+      window.easyPack.mapWidget("inpost-map", (point: Locker) => {
         setOpen(false);
         onSelect(point);
       });
-    }, 100);
+    });
   }
 
   return (
@@ -106,22 +146,34 @@ export default function InPostWidget({ onSelect, selected: selectedProp }: Props
       {open && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl overflow-hidden w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-outline-variant/20">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
               <h3 className="font-montserrat font-semibold text-primary">Wybierz paczkomat InPost</h3>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="w-8 h-8 rounded-full hover:bg-surface-container flex items-center justify-center text-on-surface-variant transition-colors"
+                className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-500 transition-colors"
               >
                 <Icon name="close" />
               </button>
             </div>
-            {!loaded && (
-              <div className="flex-1 flex items-center justify-center py-16 text-on-surface-variant text-sm">
-                <p>Ładowanie mapy… Upewnij się, że masz skonfigurowany token InPost.</p>
+
+            {loadError && (
+              <div className="flex-1 flex flex-col items-center justify-center py-16 gap-3 text-on-surface-variant">
+                <Icon name="wifi_off" className="text-[32px]" />
+                <p className="text-sm text-center px-8">Nie można załadować mapy paczkomatów.<br />Spróbuj ponownie lub wybierz dostawę kurierem.</p>
               </div>
             )}
-            <div id="inpost-map" ref={mapRef} style={{ height: "500px", width: "100%" }} />
+
+            {!loaded && !loadError && (
+              <div className="flex-1 flex items-center justify-center py-16">
+                <div className="flex flex-col items-center gap-3 text-on-surface-variant">
+                  <div className="w-8 h-8 border-2 border-secondary border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm">Ładowanie mapy…</p>
+                </div>
+              </div>
+            )}
+
+            <div id="inpost-map" ref={mapRef} style={{ height: "500px", width: "100%", display: loaded && !loadError ? "block" : "none" }} />
           </div>
         </div>
       )}
