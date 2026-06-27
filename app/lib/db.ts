@@ -5,6 +5,18 @@ export function getDb() {
   return neon(process.env.DATABASE_URL);
 }
 
+export async function initSubscribersTable() {
+  const sql = getDb();
+  await sql`
+    CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+      id SERIAL PRIMARY KEY,
+      email TEXT UNIQUE NOT NULL,
+      source TEXT NOT NULL DEFAULT 'maintenance',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
+}
+
 export async function initDb() {
   const sql = getDb();
   await sql`

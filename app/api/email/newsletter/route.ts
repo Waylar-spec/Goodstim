@@ -1,25 +1,47 @@
 import { Resend } from "resend";
 import { NextRequest, NextResponse } from "next/server";
+import { getDb, initSubscribersTable } from "../../../lib/db";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: NextRequest) {
   try {
     const { email } = await req.json();
-    if (!email) return NextResponse.json({ error: "Missing email" }, { status: 400 });
-
-    // Add to Resend audience (create one in Resend dashboard first, then paste the ID below)
-    const audienceId = process.env.RESEND_AUDIENCE_ID;
-    if (audienceId) {
-      await resend.contacts.create({ audienceId, email, unsubscribed: false });
+    if (!email || !email.includes("@")) {
+      return NextResponse.json({ error: "Nieprawidłowy email" }, { status: 400 });
     }
 
-    // Send welcome email
-    const { error } = await resend.emails.send({
-      from: process.env.RESEND_FROM ?? "GoodStim <onboarding@resend.dev>",
-      to: email,
-      subject: "Witaj w GoodStim — Twój kod rabatowy 10%",
-      html: `<!DOCTYPE html>
+    // 1. Zapisz do Neon DB (zawsze działa)
+    try {
+      await initSubscribersTable();
+      const sql = getDb();
+      await sql`
+        INSERT INTO newsletter_subscribers (email, source)
+        VALUES (${email}, 'maintenance')
+        ON CONFLICT (email) DO NOTHING
+      `;
+    } catch (dbErr) {
+      console.error("DB subscriber error:", dbErr);
+    }
+
+    // 2. Dodaj do Resend Audience (jeśli skonfigurowane)
+    const audienceId = process.env.RESEND_AUDIENCE_ID;
+    if (audienceId) {
+      try {
+        await resend.contacts.create({ audienceId, email, unsubscribed: false });
+      } catch (audErr) {
+        console.error("Resend audience error:", audErr);
+      }
+    }
+
+    // 3. Wyślij email powitalny (działa tylko po weryfikacji domeny)
+    const from = process.env.RESEND_FROM ?? "GoodStim <onboarding@resend.dev>";
+    try {
+      await resend.emails.send({
+        from,
+        to: email,
+        subject: "Witaj w GoodStim — Twój kod rabatowy 10%",
+        html: `<!DOCTYPE html>
 <html lang="pl">
 <head><meta charset="utf-8"/></head>
 <body style="margin:0;padding:0;background:#f7fdf9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
@@ -31,7 +53,7 @@ export async function POST(req: NextRequest) {
         </td></tr>
         <tr><td style="background:#ffffff;padding:40px;border-radius:0 0 16px 16px">
           <h1 style="font-size:24px;font-weight:700;color:#252537;margin:0 0 16px">
-            Dziękujemy za zapis! 👋
+            Dziękujemy za zapis!
           </h1>
           <p style="color:#718096;font-size:15px;line-height:1.7;margin:0 0 32px">
             Dołączyłeś do społeczności GoodStim — ludzi, którzy biorą swój spokój w swoje ręce.
@@ -47,12 +69,12 @@ export async function POST(req: NextRequest) {
             </a>
           </div>
           <p style="color:#a0aec0;font-size:13px;text-align:center;margin:0">
-            Pytania? <a href="mailto:hello@goodstim.pl" style="color:#2AE5A5">hello@goodstim.pl</a>
+            Pytania? <a href="mailto:kontakt@goodstim.pl" style="color:#2AE5A5">kontakt@goodstim.pl</a>
           </p>
         </td></tr>
         <tr><td style="padding:24px 40px;text-align:center">
           <p style="color:#a0aec0;font-size:12px;margin:0">
-            © 2025 GoodStim ·
+            © 2026 GoodStim ·
             <a href="https://goodstim.pl/unsubscribe?email=${encodeURIComponent(email)}" style="color:#a0aec0">Wypisz się</a>
           </p>
         </td></tr>
@@ -61,9 +83,12 @@ export async function POST(req: NextRequest) {
   </table>
 </body>
 </html>`,
-    });
+      });
+    } catch (emailErr: unknown) {
+      // Jeśli domena nie zweryfikowana — loguj ale nie blokuj odpowiedzi
+      console.error("Resend email error:", emailErr);
+    }
 
-    if (error) return NextResponse.json({ error }, { status: 500 });
     return NextResponse.json({ ok: true });
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 });
