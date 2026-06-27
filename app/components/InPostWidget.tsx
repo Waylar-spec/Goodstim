@@ -10,6 +10,7 @@ interface Locker {
 
 interface Props {
   onSelect: (locker: Locker) => void;
+  selected?: Locker | null;
 }
 
 declare global {
@@ -21,9 +22,9 @@ declare global {
   }
 }
 
-export default function InPostWidget({ onSelect }: Props) {
+export default function InPostWidget({ onSelect, selected: selectedProp }: Props) {
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState<Locker | null>(null);
+  const selected = selectedProp ?? null;
   const [loaded, setLoaded] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
   const widgetRef = useRef<unknown>(null);
@@ -62,7 +63,6 @@ export default function InPostWidget({ onSelect }: Props) {
     setTimeout(() => {
       if (!mapRef.current) return;
       widgetRef.current = window.easyPack.mapWidget("inpost-map", (point: Locker) => {
-        setSelected(point);
         setOpen(false);
         onSelect(point);
       });

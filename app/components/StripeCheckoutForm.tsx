@@ -9,10 +9,11 @@ interface Props {
   email: string;
   firstName: string;
   metadata?: Record<string, string>;
+  onBeforeSubmit?: () => boolean;
   onSuccess: () => void;
 }
 
-export default function StripeCheckoutForm({ totalGrosze, email, firstName, metadata, onSuccess }: Props) {
+export default function StripeCheckoutForm({ totalGrosze, email, firstName, metadata, onBeforeSubmit, onSuccess }: Props) {
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
@@ -21,6 +22,10 @@ export default function StripeCheckoutForm({ totalGrosze, email, firstName, meta
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!stripe || !elements) return;
+
+    // Walidacja formularza dostawy i zgód przed obsługą karty
+    if (onBeforeSubmit && !onBeforeSubmit()) return;
+
     setLoading(true);
     setError(null);
 
