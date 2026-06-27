@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import ShopClient from "../components/ShopClient";
 
 export const metadata: Metadata = {
-  title: "Kup GoodStim VNS One — Stymulator Nerwu Błędnego · 1299 PLN",
+  title: "Kup GoodStim VNS One — Stymulator Nerwu Błędnego · 550 PLN",
   description:
     "GoodStim VNS One to profesjonalny stymulator nerwu błędnego z 50 poziomami intensywności. iOS i Android. Darmowa dostawa, 30 dni gwarancji zwrotu. Sprawdź cenę.",
   keywords: [
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "GoodStim VNS One — Stymulator Nerwu Błędnego",
     description:
-      "Profesjonalny stymulator nerwu błędnego. 50 poziomów intensywności, iOS/Android, bateria 24h. Od 1299 PLN z darmową dostawą.",
+      "Profesjonalny stymulator nerwu błędnego. 50 poziomów intensywności, iOS/Android, bateria 24h. Od 550 PLN z darmową dostawą.",
     type: "website",
     locale: "pl_PL",
     siteName: "GoodStim",
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "GoodStim VNS One — Stymulator Nerwu Błędnego",
     description:
-      "Profesjonalny stymulator nerwu błędnego. 50 poziomów, iOS/Android. Od 1299 PLN.",
+      "Profesjonalny stymulator nerwu błędnego. 50 poziomów, iOS/Android. Od 550 PLN.",
   },
 };
 
@@ -40,7 +40,7 @@ const productJsonLd = {
   offers: {
     "@type": "Offer",
     priceCurrency: "PLN",
-    price: "1299",
+    price: "550",
     priceValidUntil: "2025-12-31",
     availability: "https://schema.org/InStock",
     itemCondition: "https://schema.org/NewCondition",

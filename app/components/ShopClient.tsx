@@ -115,8 +115,8 @@ export default function ShopClient() {
 
               <div className="p-6 bg-surface-container-lowest border border-outline-variant/20 rounded-[24px] shadow-sm space-y-6">
                 <div className="flex items-baseline gap-2">
-                  <span className="font-montserrat text-[48px] leading-[56px] font-bold text-tech-blue">1299 PLN</span>
-                  <span className="text-base text-on-surface-variant line-through">1499 PLN</span>
+                  <span className="font-montserrat text-[48px] leading-[56px] font-bold text-tech-blue">550 PLN</span>
+                  <span className="text-base text-on-surface-variant line-through">699 PLN</span>
                 </div>
                 <div className="space-y-4">
                   <button
