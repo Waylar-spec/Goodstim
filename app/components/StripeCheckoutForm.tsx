@@ -142,6 +142,7 @@ export default function StripeCheckoutForm({ totalGrosze, email, firstName, meta
             layout: "tabs",
             fields: { billingDetails: { name: "never", email: "never" } },
             wallets: { applePay: "never", googlePay: "never" },
+            terms: { card: "never" },
           }}
         />
         {error && (
