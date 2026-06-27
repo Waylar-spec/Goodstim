@@ -60,23 +60,8 @@ export default function CheckoutPage() {
     return true;
   }
 
-  async function sendConfirmation() {
-    await fetch("/api/email/order", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email,
-        firstName,
-        orderNumber,
-        items: items.map(({ product, qty }) => ({
-          name: product.name,
-          subtitle: product.subtitle,
-          qty,
-          price: product.price,
-        })),
-        total,
-      }),
-    });
+  function sendConfirmation() {
+    // Email wysyłany przez webhook Stripe (payment_intent.succeeded) — nie duplikujemy tutaj
     setOrderState("ok");
   }
 
