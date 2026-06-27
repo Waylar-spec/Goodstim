@@ -269,7 +269,17 @@ export default function CheckoutPage() {
                   <h2 className="font-montserrat text-2xl font-semibold">Metoda płatności</h2>
                 </div>
                 <div className="bg-white rounded-2xl border border-outline-variant/20 p-6">
-                  {amountGrosze > 0 ? (
+                  {items.length === 0 ? (
+                    <p className="text-sm text-on-surface-variant text-center py-4">Koszyk jest pusty.</p>
+                  ) : amountGrosze === 0 ? (
+                    <button
+                      onClick={() => { if (handlePaymentAttempt()) sendConfirmation(); }}
+                      className="w-full bg-vibrant-teal text-tech-blue py-5 rounded-2xl font-semibold text-sm tracking-wide transition-all shadow-lg hover:opacity-90 flex items-center justify-center gap-2"
+                    >
+                      <Icon name="check_circle" className="text-[20px]" />
+                      Złóż zamówienie bezpłatnie
+                    </button>
+                  ) : (
                     <StripeProvider amount={amountGrosze}>
                       <StripeCheckoutForm
                         totalGrosze={amountGrosze}
@@ -280,8 +290,6 @@ export default function CheckoutPage() {
                         onSuccess={sendConfirmation}
                       />
                     </StripeProvider>
-                  ) : (
-                    <p className="text-sm text-on-surface-variant text-center py-4">Koszyk jest pusty.</p>
                   )}
                 </div>
               </section>

@@ -8,6 +8,7 @@ interface Coupon {
 const COUPONS: Record<string, Coupon> = {
   PREMIERA10: { discountPct: 10, label: "Rabat powitalny 10%" },
   GOODSTIM10: { discountPct: 10, label: "Rabat 10%" },
+  GSTEST100: { discountPct: 100, label: "Zamówienie testowe 100%" },
 };
 
 export async function POST(req: NextRequest) {
