@@ -66,9 +66,22 @@ export default function StripeCheckoutForm({ totalGrosze, email, firstName, meta
     setLoading(true);
     setError(null);
 
-    // Confirm payment — Elements handles the PI internally (mode: "payment")
+    // Utwórz PI z metadanymi zamówienia przed potwierdzeniem
+    const intentRes = await fetch("/api/stripe/intent", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ amount: totalGrosze, metadata }),
+    });
+    const { clientSecret, error: intentErr } = await intentRes.json();
+    if (intentErr || !clientSecret) {
+      setError("Nie udało się przygotować płatności. Spróbuj ponownie.");
+      setLoading(false);
+      return;
+    }
+
     const { error: submitErr } = await stripe.confirmPayment({
       elements,
+      clientSecret,
       confirmParams: {
         return_url: `${window.location.origin}/checkout/success`,
         payment_method_data: {

@@ -204,7 +204,7 @@ export default function CheckoutPage() {
             <div className="flex flex-wrap items-center gap-8 py-8 border-t border-outline-variant/20">
               {[
                 { icon: "verified_user", label: "Szyfrowanie SSL" },
-                { icon: "medical_services", label: "Sprzęt klasy medycznej" },
+                { icon: "favorite", label: "30-dniowa gwarancja" },
                 { icon: "package_2", label: "Ekologiczna dostawa" },
               ].map((b) => (
                 <div key={b.label} className="flex items-center gap-2 opacity-60">
