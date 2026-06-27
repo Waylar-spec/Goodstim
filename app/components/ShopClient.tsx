@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import Icon from "./Icon";
 import { useCart } from "../lib/cart";
 import { PRODUCTS, getAccessories, formatPrice } from "../lib/products";
+import toast from "react-hot-toast";
 
 const MAIN_PRODUCT = PRODUCTS.find((p) => p.id === "vns-one")!;
 
@@ -34,19 +35,28 @@ function Stars({ rating }: { rating: number }) {
 
 export default function ShopClient() {
   const [activeThumb, setActiveThumb] = useState(0);
-  const [added, setAdded] = useState(false);
   const thumbs = [IMGS.main, IMGS.t1, IMGS.t2, IMGS.t3];
   const { addToCart } = useCart();
   const accessories = getAccessories();
+  const buyBtnRef = useRef<HTMLButtonElement>(null);
+  const [stickyVisible, setStickyVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => setStickyVisible(!entry.isIntersecting),
+      { threshold: 0 }
+    );
+    if (buyBtnRef.current) observer.observe(buyBtnRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   const handleAdd = (productId: string) => {
     const product = PRODUCTS.find((p) => p.id === productId);
     if (!product) return;
     addToCart(product);
-    if (productId === MAIN_PRODUCT.id) {
-      setAdded(true);
-      setTimeout(() => setAdded(false), 2000);
-    }
+    toast.success(`${product.name} dodano do koszyka!`, {
+      icon: "🛒",
+    });
   };
 
   return (
@@ -120,15 +130,12 @@ export default function ShopClient() {
                 </div>
                 <div className="space-y-4">
                   <button
+                    ref={buyBtnRef}
                     onClick={() => handleAdd(MAIN_PRODUCT.id)}
-                    className={`w-full py-5 rounded-full font-semibold text-sm tracking-wide transition-all text-center btn-press flex items-center justify-center gap-2 ${
-                      added
-                        ? "bg-secondary text-white"
-                        : "bg-tech-blue hover:bg-primary text-white"
-                    }`}
+                    className="w-full py-5 rounded-full font-semibold text-sm tracking-wide transition-all text-center btn-press flex items-center justify-center gap-2 bg-tech-blue hover:bg-primary text-white"
                   >
-                    <Icon name={added ? "check" : "add_shopping_cart"} className="text-[20px]" />
-                    {added ? "Dodano do koszyka!" : "Dodaj do koszyka"}
+                    <Icon name="add_shopping_cart" className="text-[20px]" />
+                    Dodaj do koszyka
                   </button>
                   <p className="text-center text-xs text-on-surface-variant flex items-center justify-center gap-2">
                     <Icon name="local_shipping" className="text-[16px]" />
@@ -352,6 +359,23 @@ export default function ShopClient() {
       </main>
 
       <Footer />
+
+      {/* Sticky mobile CTA */}
+      <div className={`fixed bottom-0 left-0 right-0 z-40 md:hidden transition-all duration-300 ${stickyVisible ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"}`}>
+        <div className="bg-surface/95 backdrop-blur-md border-t border-outline-variant/20 px-4 py-3 flex items-center gap-3">
+          <div className="flex-1 min-w-0">
+            <p className="text-xs text-on-surface-variant">GoodStim VNS One</p>
+            <p className="font-montserrat font-bold text-tech-blue text-lg leading-tight">550 PLN</p>
+          </div>
+          <button
+            onClick={() => handleAdd(MAIN_PRODUCT.id)}
+            className="bg-tech-blue text-white px-6 py-3.5 rounded-2xl font-semibold text-sm btn-press flex items-center gap-2 shrink-0"
+          >
+            <Icon name="add_shopping_cart" className="text-[18px]" />
+            Do koszyka
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
