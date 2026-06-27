@@ -35,10 +35,36 @@ export default function CheckoutPage() {
   const [newsletterAccepted, setNewsletterAccepted] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [orderState, setOrderState] = useState<"idle" | "ok">("idle");
+  const [couponCode, setCouponCode] = useState("");
+  const [couponState, setCouponState] = useState<"idle" | "loading" | "ok" | "error">("idle");
+  const [couponLabel, setCouponLabel] = useState("");
+  const [discountPct, setDiscountPct] = useState(0);
   const { items, total, removeFromCart, setQty } = useCart();
 
-  const amountGrosze = Math.round(total * 100);
+  const discountAmount = Math.round(total * discountPct / 100 * 100) / 100;
+  const totalAfterDiscount = Math.max(0, total - discountAmount);
+  const amountGrosze = Math.round(totalAfterDiscount * 100);
   const orderNumber = useState(() => genOrderNumber())[0];
+
+  async function applyCoupon() {
+    if (!couponCode.trim()) return;
+    setCouponState("loading");
+    const res = await fetch("/api/coupon/validate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: couponCode }),
+    });
+    const data = await res.json();
+    if (res.ok && data.valid) {
+      setDiscountPct(data.discountPct);
+      setCouponLabel(data.label);
+      setCouponState("ok");
+    } else {
+      setDiscountPct(0);
+      setCouponLabel("");
+      setCouponState("error");
+    }
+  }
 
   function validateBeforePayment(): string | null {
     if (!firstName.trim() || !lastName.trim()) return "Podaj imię i nazwisko.";
@@ -87,6 +113,8 @@ export default function CheckoutPage() {
     postal_code: delivery === "inpost" ? "" : postalCode,
     inpost_locker: selectedLocker?.name ?? "",
     order_number: orderNumber,
+    coupon_code: discountPct > 0 ? couponCode.toUpperCase() : "",
+    discount_pct: discountPct > 0 ? String(discountPct) : "",
     items_json: JSON.stringify(items.map(({ product, qty }) => ({
       name: product.name, subtitle: product.subtitle, qty, price: product.price,
     }))),
@@ -359,8 +387,46 @@ export default function CheckoutPage() {
                     <hr className="border-outline-variant/20" />
                     <div className="space-y-3">
                       <div className="flex justify-between text-base text-on-surface-variant"><span>Suma</span><span>{formatPrice(total)}</span></div>
+                      {discountPct > 0 && (
+                        <div className="flex justify-between text-sm text-vibrant-teal font-semibold">
+                          <span>Rabat ({couponCode.toUpperCase()}, -{discountPct}%)</span>
+                          <span>-{formatPrice(discountAmount)}</span>
+                        </div>
+                      )}
                       <div className="flex justify-between text-base text-on-surface-variant"><span>Dostawa</span><span className="text-vibrant-teal font-semibold">Bezpłatna</span></div>
-                      <div className="flex justify-between font-montserrat text-xl font-bold text-primary pt-2"><span>Razem</span><span>{formatPrice(total)}</span></div>
+                      <div className="flex justify-between font-montserrat text-xl font-bold text-primary pt-2"><span>Razem</span><span>{formatPrice(totalAfterDiscount)}</span></div>
+
+                      {/* Kod rabatowy */}
+                      <div className="pt-2">
+                        {couponState === "ok" ? (
+                          <div className="flex items-center justify-between px-3 py-2 bg-soft-mint border border-vibrant-teal/30 rounded-xl text-sm">
+                            <span className="text-secondary font-semibold flex items-center gap-1.5">
+                              <Icon name="check_circle" className="text-[16px]" fill />
+                              {couponLabel}
+                            </span>
+                            <button onClick={() => { setCouponState("idle"); setDiscountPct(0); setCouponCode(""); setCouponLabel(""); }}
+                              className="text-on-surface-variant hover:text-error text-xs">Usuń</button>
+                          </div>
+                        ) : (
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={couponCode}
+                              onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); setCouponState("idle"); }}
+                              onKeyDown={(e) => e.key === "Enter" && applyCoupon()}
+                              placeholder="Kod rabatowy"
+                              className="flex-1 bg-soft-mint rounded-xl px-3 py-2.5 text-sm border-none input-focus-effect text-on-surface placeholder:text-on-surface-variant/50"
+                            />
+                            <button onClick={applyCoupon} disabled={couponState === "loading" || !couponCode.trim()}
+                              className="px-4 py-2.5 bg-tech-blue text-white text-sm font-semibold rounded-xl hover:bg-primary transition-all disabled:opacity-50">
+                              {couponState === "loading" ? "…" : "Użyj"}
+                            </button>
+                          </div>
+                        )}
+                        {couponState === "error" && (
+                          <p className="text-xs text-red-500 mt-1.5 px-1">Nieprawidłowy kod rabatowy</p>
+                        )}
+                      </div>
                     </div>
                     {deliveryAddress && (
                       <div className="flex items-start gap-2 text-xs text-on-surface-variant bg-surface-container-lowest rounded-xl p-3">
