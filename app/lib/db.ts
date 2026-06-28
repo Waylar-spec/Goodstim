@@ -39,6 +39,7 @@ export async function initDb() {
       total_pln NUMERIC(10,2) NOT NULL,
 
       tracking_number TEXT,
+      shipment_id TEXT,
       label_url TEXT,
 
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -50,5 +51,6 @@ export async function initDb() {
   await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_method TEXT NOT NULL DEFAULT 'courier'`;
   await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS inpost_locker TEXT`;
   await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS tracking_number TEXT`;
+  await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipment_id TEXT`;
   await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS label_url TEXT`;
 }

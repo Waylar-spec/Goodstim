@@ -17,9 +17,12 @@ type Order = {
   items: { name: string; qty: number; price: number }[];
   total_pln: string;
   tracking_number: string | null;
+  shipment_id: string | null;
   created_at: string;
   stripe_payment_intent_id: string;
 };
+
+const PER_PAGE = 15;
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   new:        { label: "Nowe",       color: "bg-blue-500/20 text-blue-300" },
@@ -37,6 +40,7 @@ export default function AdminPage() {
   const [labelLoading, setLabelLoading] = useState(false);
   const [labelMsg, setLabelMsg] = useState("");
   const [filter, setFilter] = useState("all");
+  const [page, setPage] = useState(1);
 
   async function load() {
     const res = await fetch("/api/admin/orders");
@@ -82,6 +86,9 @@ export default function AdminPage() {
   }
 
   const filtered = filter === "all" ? orders : orders.filter(o => o.status === filter);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+  const pageClamped = Math.min(page, totalPages);
+  const paged = filtered.slice((pageClamped - 1) * PER_PAGE, pageClamped * PER_PAGE);
 
   const stats = {
     total: orders.length,
@@ -122,7 +129,7 @@ export default function AdminPage() {
             <div className="flex gap-2 mb-4">
               {["all", "new", "processing", "shipped", "delivered"].map(f => (
                 <button key={f}
-                  onClick={() => setFilter(f)}
+                  onClick={() => { setFilter(f); setPage(1); }}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${filter === f ? "bg-blue-600 text-white" : "bg-[#111827] text-gray-400 hover:text-white"}`}
                 >
                   {f === "all" ? "Wszystkie" : STATUS_LABELS[f]?.label ?? f}
@@ -136,7 +143,7 @@ export default function AdminPage() {
               <div className="text-center py-20 text-gray-400">Brak zamówień</div>
             ) : (
               <div className="space-y-2">
-                {filtered.map(o => {
+                {paged.map(o => {
                   const st = STATUS_LABELS[o.status] ?? { label: o.status, color: "bg-gray-500/20 text-gray-300" };
                   return (
                     <button
@@ -163,6 +170,35 @@ export default function AdminPage() {
                     </button>
                   );
                 })}
+              </div>
+            )}
+
+            {/* Pagination */}
+            {!loading && totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-6">
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={pageClamped <= 1}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#111827] text-gray-300 disabled:opacity-40 hover:text-white transition-colors"
+                >
+                  ← Poprzednia
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={`w-8 h-8 rounded-lg text-xs font-semibold transition-colors ${p === pageClamped ? "bg-blue-600 text-white" : "bg-[#111827] text-gray-400 hover:text-white"}`}
+                  >
+                    {p}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={pageClamped >= totalPages}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#111827] text-gray-300 disabled:opacity-40 hover:text-white transition-colors"
+                >
+                  Następna →
+                </button>
               </div>
             )}
           </div>
@@ -254,6 +290,16 @@ export default function AdminPage() {
                   >
                     {labelLoading ? "Tworzę etykietę…" : "🏷️ Utwórz etykietę InPost"}
                   </button>
+                )}
+                {selected.shipment_id && (
+                  <a
+                    href={`/api/admin/label/download?order_id=${selected.id}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full block text-center bg-green-600 hover:bg-green-500 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors"
+                  >
+                    ⬇️ Pobierz etykietę (PDF)
+                  </a>
                 )}
                 {labelMsg && (
                   <p className="text-xs text-center text-gray-300">{labelMsg}</p>

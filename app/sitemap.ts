@@ -1,24 +1,24 @@
 import { MetadataRoute } from "next";
+import { getSortedPosts } from "./lib/blog";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  return [
-    {
-      url: "https://goodstim.pl",
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 1,
-    },
-    {
-      url: "https://goodstim.pl/shop",
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-    {
-      url: "https://goodstim.pl/the-science",
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
+  const base = "https://goodstim.pl";
+
+  const staticRoutes: MetadataRoute.Sitemap = [
+    { url: base, lastModified: new Date(), changeFrequency: "monthly", priority: 1 },
+    { url: `${base}/shop`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
+    { url: `${base}/the-science`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
+    { url: `${base}/blog`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
+    { url: `${base}/regulamin`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
+    { url: `${base}/polityka-prywatnosci`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
   ];
+
+  const blogRoutes: MetadataRoute.Sitemap = getSortedPosts().map((post) => ({
+    url: `${base}/blog/${post.slug}`,
+    lastModified: new Date(post.date),
+    changeFrequency: "monthly",
+    priority: 0.7,
+  }));
+
+  return [...staticRoutes, ...blogRoutes];
 }

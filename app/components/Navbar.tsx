@@ -10,8 +10,8 @@ import { formatPrice } from "../lib/products";
 const NAV_LINKS = [
   { label: "Sklep", href: "/shop" },
   { label: "Nauka", href: "/the-science" },
+  { label: "Blog", href: "/blog" },
   { label: "Opinie", href: "/#reviews" },
-  { label: "Wsparcie", href: "/#support" },
 ];
 
 export default function Navbar() {

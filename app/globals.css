@@ -123,3 +123,42 @@ body {
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
+
+/* Blog article content styles */
+.blog-content {
+  font-size: 1.0625rem;
+  line-height: 1.8;
+  color: #47464c;
+}
+.blog-content p {
+  margin: 1.25rem 0;
+}
+.blog-content h2 {
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #101021;
+  margin: 2.25rem 0 1rem;
+  line-height: 1.3;
+}
+.blog-content h3 {
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #101021;
+  margin: 1.75rem 0 0.75rem;
+}
+.blog-content ul,
+.blog-content ol {
+  margin: 1.25rem 0;
+  padding-left: 1.5rem;
+}
+.blog-content ul { list-style: disc; }
+.blog-content ol { list-style: decimal; }
+.blog-content li {
+  margin: 0.6rem 0;
+  padding-left: 0.25rem;
+}
+.blog-content strong { color: #101021; font-weight: 600; }
+.blog-content em { font-style: italic; }
+.blog-content .not-prose { font-size: 0.875rem; line-height: 1.6; }

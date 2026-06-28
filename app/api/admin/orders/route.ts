@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDb } from "../../../lib/db";
+import { getDb, initDb } from "../../../lib/db";
 import { cookies } from "next/headers";
 
 async function isAuthed() {
@@ -9,6 +9,7 @@ async function isAuthed() {
 
 export async function GET() {
   if (!await isAuthed()) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  await initDb(); // idempotent — gwarantuje migracje kolumn
   const sql = getDb();
   const orders = await sql`
     SELECT * FROM orders ORDER BY created_at DESC LIMIT 200

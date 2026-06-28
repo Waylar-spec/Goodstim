@@ -51,7 +51,8 @@ export async function POST(req: NextRequest) {
   if (!res.ok) return NextResponse.json({ error: data.message ?? "Błąd InPost API", detail: data }, { status: 502 });
 
   const tracking = data.tracking_number ?? data.id;
-  await sql`UPDATE orders SET tracking_number = ${tracking}, status = 'shipped', updated_at = NOW() WHERE id = ${order_id}`;
+  const shipmentId = String(data.id ?? "");
+  await sql`UPDATE orders SET tracking_number = ${tracking}, shipment_id = ${shipmentId}, status = 'shipped', updated_at = NOW() WHERE id = ${order_id}`;
 
-  return NextResponse.json({ ok: true, tracking_number: tracking, shipment: data });
+  return NextResponse.json({ ok: true, tracking_number: tracking, shipment_id: shipmentId, shipment: data });
 }
