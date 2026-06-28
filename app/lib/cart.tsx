@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext, useReducer, useEffect, ReactNode } from "react";
+import { createContext, useContext, useReducer, useEffect, useState, ReactNode } from "react";
 import type { Product } from "./products";
 
 const STORAGE_KEY = "goodstim_cart";
@@ -46,6 +46,9 @@ type CartCtx = {
   setQty: (id: string, qty: number) => void;
   total: number;
   count: number;
+  cartOpen: boolean;
+  openCart: () => void;
+  closeCart: () => void;
 };
 
 const CartContext = createContext<CartCtx | null>(null);
@@ -62,6 +65,7 @@ function loadCart(): State {
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, undefined, loadCart);
+  const [cartOpen, setCartOpen] = useState(false);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -70,11 +74,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const addToCart = (product: Product) => dispatch({ type: "ADD", product });
   const removeFromCart = (id: string) => dispatch({ type: "REMOVE", id });
   const setQty = (id: string, qty: number) => dispatch({ type: "SET_QTY", id, qty });
+  const openCart = () => setCartOpen(true);
+  const closeCart = () => setCartOpen(false);
   const total = state.items.reduce((s, i) => s + i.product.price * i.qty, 0);
   const count = state.items.reduce((s, i) => s + i.qty, 0);
 
   return (
-    <CartContext.Provider value={{ items: state.items, addToCart, removeFromCart, setQty, total, count }}>
+    <CartContext.Provider value={{ items: state.items, addToCart, removeFromCart, setQty, total, count, cartOpen, openCart, closeCart }}>
       {children}
     </CartContext.Provider>
   );

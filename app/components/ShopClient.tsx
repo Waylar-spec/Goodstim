@@ -34,7 +34,7 @@ function Stars({ rating }: { rating: number }) {
 export default function ShopClient() {
   const [activeThumb, setActiveThumb] = useState(0);
   const thumbs = [IMGS.main, IMGS.t1, IMGS.t2, IMGS.t3];
-  const { addToCart } = useCart();
+  const { addToCart, openCart } = useCart();
   const accessories = getAccessories();
   const buyBtnRef = useRef<HTMLButtonElement>(null);
   const [stickyVisible, setStickyVisible] = useState(false);
@@ -57,6 +57,7 @@ export default function ShopClient() {
     if (!product) return;
     addToCart(product);
     trackAddToCart({ id: product.id, name: product.name, price: product.price });
+    openCart();
     toast.success(`${product.name} dodano do koszyka!`, {
       icon: "🛒",
     });

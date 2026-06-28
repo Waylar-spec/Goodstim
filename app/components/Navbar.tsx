@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Icon from "./Icon";
@@ -15,9 +14,8 @@ const NAV_LINKS = [
 ];
 
 export default function Navbar() {
-  const [cartOpen, setCartOpen] = useState(false);
   const pathname = usePathname();
-  const { items, removeFromCart, setQty, total, count } = useCart();
+  const { items, removeFromCart, setQty, total, count, cartOpen, openCart, closeCart } = useCart();
 
   return (
     <>
@@ -50,7 +48,7 @@ export default function Navbar() {
             </button>
             <button
               className="text-on-surface-variant hover:text-primary transition-colors relative"
-              onClick={() => setCartOpen(true)}
+              onClick={() => openCart()}
               aria-label="Otwórz koszyk"
             >
               <Icon name="shopping_bag" />
@@ -69,7 +67,7 @@ export default function Navbar() {
         className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-[55] transition-opacity duration-500 ${
           cartOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
-        onClick={() => setCartOpen(false)}
+        onClick={() => closeCart()}
       />
 
       {/* Cart Drawer */}
@@ -86,7 +84,7 @@ export default function Navbar() {
               {count === 0 ? "Koszyk jest pusty" : `${count} ${count === 1 ? "produkt" : "produkty"}`}
             </p>
           </div>
-          <button className="text-tech-blue hover:text-primary transition-colors mt-1" onClick={() => setCartOpen(false)}>
+          <button className="text-tech-blue hover:text-primary transition-colors mt-1" onClick={() => closeCart()}>
             <Icon name="close" />
           </button>
         </div>
@@ -101,7 +99,7 @@ export default function Navbar() {
               <p className="text-on-surface-variant font-semibold">Dodaj produkty do koszyka</p>
               <Link
                 href="/shop"
-                onClick={() => setCartOpen(false)}
+                onClick={() => closeCart()}
                 className="px-6 py-3 bg-tech-blue text-white text-sm font-semibold rounded-full hover:bg-primary transition-colors"
               >
                 Przejdź do sklepu
@@ -175,7 +173,7 @@ export default function Navbar() {
             <Link
               href="/checkout"
               className="block w-full py-4 bg-tech-blue text-white rounded-xl font-bold hover:bg-primary transition-all text-center"
-              onClick={() => setCartOpen(false)}
+              onClick={() => closeCart()}
             >
               Przejdź do kasy
             </Link>
