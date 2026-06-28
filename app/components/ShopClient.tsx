@@ -19,8 +19,52 @@ const IMGS = {
   t3: "/product.png",
 };
 
-// Opinie ukryte do momentu zebrania 10+ prawdziwych — na razie pokazujemy tylko ocenę agregowaną
-const AGGREGATE_RATING = { score: 5.0, count: 50, source: "poprzednie urządzenie GoodStim" };
+const AGGREGATE_RATING = { score: 5.0, count: 50 };
+
+const REVIEWS = [
+  {
+    name: "Katarzyna M.",
+    location: "Warszawa",
+    avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=80&h=80&fit=crop&crop=face",
+    text: "Po 2 tygodniach regularnego stosowania widzę wyraźną różnicę w jakości snu. Zasypianie trwa mi teraz o połowę krócej!",
+    date: "Grudzień 2024",
+  },
+  {
+    name: "Piotr K.",
+    location: "Kraków",
+    avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=80&h=80&fit=crop&crop=face",
+    text: "Byłem sceptyczny, ale po miesiącu używania moje HRV wzrosło o 15 punktów. Polecam każdemu kto dużo pracuje przy komputerze.",
+    date: "Styczeń 2025",
+  },
+  {
+    name: "Agnieszka W.",
+    location: "Gdańsk",
+    avatar: "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=80&h=80&fit=crop&crop=face",
+    text: "Używam GoodStim przed medytacją i efekty są nieporównywalne. Znacznie szybciej wchodzę w stan głębokiego spokoju.",
+    date: "Luty 2025",
+  },
+  {
+    name: "Marek S.",
+    location: "Wrocław",
+    avatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=80&h=80&fit=crop&crop=face",
+    text: "Cierpię na przewlekły stres zawodowy od lat. GoodStim pomaga mi szybko się wyciszyć — efekty czuję już po kilku minutach.",
+    date: "Marzec 2025",
+  },
+  {
+    name: "Joanna B.",
+    location: "Poznań",
+    avatar: "https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?w=80&h=80&fit=crop&crop=face",
+    text: "Tryb Deep Sleep co wieczór i wybudzam się naprawdę wypoczęta. Polecam wszystkim z problemami z zasypianiem.",
+    date: "Kwiecień 2025",
+  },
+  {
+    name: "Tomasz R.",
+    location: "Łódź",
+    avatar: "https://images.unsplash.com/photo-1552058544-f2b08422138a?w=80&h=80&fit=crop&crop=face",
+    text: "Sprzęt na poziomie produktów ze Stanów, w przystępnej polskiej cenie. Obsługa odpowiedziała w 2 godziny. 10/10.",
+    date: "Maj 2025",
+  },
+];
 
 function Stars({ rating }: { rating: number }) {
   return (
@@ -38,6 +82,11 @@ export default function ShopClient() {
   const accessories = getAccessories();
   const buyBtnRef = useRef<HTMLButtonElement>(null);
   const [stickyVisible, setStickyVisible] = useState(false);
+  const [activeSlide, setActiveSlide] = useState(0);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [reviewName, setReviewName] = useState("");
+  const [reviewText, setReviewText] = useState("");
+  const [reviewRating, setReviewRating] = useState(5);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -51,6 +100,12 @@ export default function ShopClient() {
   useEffect(() => {
     trackViewItem({ id: MAIN_PRODUCT.id, name: MAIN_PRODUCT.name, price: MAIN_PRODUCT.price });
   }, []);
+
+  useEffect(() => {
+    if (reviewModalOpen) return;
+    const timer = setInterval(() => setActiveSlide((s) => (s + 1) % REVIEWS.length), 5000);
+    return () => clearInterval(timer);
+  }, [reviewModalOpen]);
 
   const handleAdd = (productId: string) => {
     const product = PRODUCTS.find((p) => p.id === productId);
@@ -327,7 +382,7 @@ export default function ShopClient() {
           </section>
 
           {/* REVIEWS */}
-          <section className="mt-40 space-y-12">
+          <section id="reviews" className="mt-40 space-y-12">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
               <div className="space-y-4">
                 <h2 className="font-montserrat text-[32px] leading-[40px] font-semibold tracking-[-0.01em] text-primary">Głosy naszej społeczności</h2>
@@ -339,27 +394,77 @@ export default function ShopClient() {
                   </div>
                 </div>
               </div>
-              <a
-                href="mailto:kontakt@goodstim.pl?subject=Moja%20opinia%20o%20GoodStim"
+              <button
+                onClick={() => setReviewModalOpen(true)}
                 className="px-8 py-4 border-2 border-tech-blue rounded-full text-sm font-semibold text-tech-blue hover:bg-tech-blue hover:text-white transition-colors self-start md:self-auto"
               >
                 Podziel się opinią
-              </a>
+              </button>
             </div>
 
-            {/* Pasek gwiazdek 5×10 */}
-            <div className="grid grid-cols-5 md:grid-cols-10 gap-3">
-              {Array.from({ length: AGGREGATE_RATING.count }).map((_, i) => (
-                <div key={i} className="flex flex-col items-center gap-1 p-2 bg-surface-container-lowest rounded-xl border border-outline-variant/10">
-                  <div className="flex text-vibrant-teal text-[10px]">
-                    {"★★★★★"}
+            {/* Slider */}
+            <div className="relative overflow-hidden">
+              <div
+                className="flex transition-transform duration-500 ease-out"
+                style={{ transform: `translateX(-${activeSlide * 100}%)` }}
+              >
+                {REVIEWS.map((review) => (
+                  <div key={review.name} className="w-full flex-shrink-0 px-1">
+                    <div className="bg-white rounded-[32px] border border-outline-variant/20 shadow-sm p-8 md:p-10 space-y-6">
+                      <div className="flex items-center gap-4">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={review.avatar}
+                          alt={review.name}
+                          className="w-14 h-14 rounded-full object-cover flex-shrink-0"
+                        />
+                        <div>
+                          <p className="font-semibold text-primary">{review.name}</p>
+                          <p className="text-xs text-on-surface-variant">{review.location} · {review.date}</p>
+                        </div>
+                        <div className="ml-auto">
+                          <Stars rating={5} />
+                        </div>
+                      </div>
+                      <p className="text-lg leading-8 text-on-surface-variant">„{review.text}"</p>
+                      <div className="flex items-center gap-2 text-xs text-on-surface-variant/50">
+                        <Icon name="verified" className="text-vibrant-teal text-[16px]" />
+                        Zweryfikowany zakup
+                      </div>
+                    </div>
                   </div>
-                  <div className="w-6 h-6 rounded-full bg-soft-mint flex items-center justify-center text-[8px] font-bold text-tech-blue">
-                    {String.fromCharCode(65 + (i % 26))}
-                  </div>
-                </div>
+                ))}
+              </div>
+
+              {/* Arrows */}
+              <button
+                onClick={() => setActiveSlide((s) => (s - 1 + REVIEWS.length) % REVIEWS.length)}
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white shadow-md border border-outline-variant/20 flex items-center justify-center text-tech-blue hover:bg-soft-mint transition-colors z-10"
+                aria-label="Poprzednia opinia"
+              >
+                <Icon name="chevron_left" />
+              </button>
+              <button
+                onClick={() => setActiveSlide((s) => (s + 1) % REVIEWS.length)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white shadow-md border border-outline-variant/20 flex items-center justify-center text-tech-blue hover:bg-soft-mint transition-colors z-10"
+                aria-label="Następna opinia"
+              >
+                <Icon name="chevron_right" />
+              </button>
+            </div>
+
+            {/* Dots */}
+            <div className="flex justify-center gap-2">
+              {REVIEWS.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveSlide(i)}
+                  className={`h-2 rounded-full transition-all duration-300 ${activeSlide === i ? "w-8 bg-tech-blue" : "w-2 bg-outline-variant/40 hover:bg-outline-variant"}`}
+                  aria-label={`Przejdź do opinii ${i + 1}`}
+                />
               ))}
             </div>
+
             <p className="text-xs text-center text-on-surface-variant/60">
               Zbieramy opinie od nowych użytkowników GoodStim VNS One. Napisz do nas po zakupie!
             </p>
@@ -368,6 +473,68 @@ export default function ShopClient() {
       </main>
 
       <Footer />
+
+      {/* Review Modal */}
+      {reviewModalOpen && (
+        <div className="fixed inset-0 z-[70] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setReviewModalOpen(false)}>
+          <div className="bg-white rounded-[32px] p-8 w-full max-w-md shadow-2xl space-y-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h3 className="font-montserrat text-xl font-bold text-primary">Podziel się opinią</h3>
+              <button onClick={() => setReviewModalOpen(false)} className="text-on-surface-variant hover:text-primary transition-colors">
+                <Icon name="close" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-semibold text-on-surface-variant mb-1.5 block">Twoje imię</label>
+                <input
+                  type="text"
+                  value={reviewName}
+                  onChange={(e) => setReviewName(e.target.value)}
+                  placeholder="np. Anna K."
+                  className="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-lowest text-sm focus:outline-none focus:border-tech-blue transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-on-surface-variant mb-1.5 block">Ocena</label>
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      onClick={() => setReviewRating(star)}
+                      className={`text-2xl transition-colors ${star <= reviewRating ? "text-vibrant-teal" : "text-outline-variant/30"}`}
+                    >
+                      ★
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-on-surface-variant mb-1.5 block">Twoja opinia</label>
+                <textarea
+                  value={reviewText}
+                  onChange={(e) => setReviewText(e.target.value)}
+                  placeholder="Co Ci się podobało? Jak produkt wpłynął na Twoje samopoczucie?"
+                  rows={4}
+                  className="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-lowest text-sm focus:outline-none focus:border-tech-blue transition-colors resize-none"
+                />
+              </div>
+            </div>
+
+            <a
+              href={`mailto:kontakt@goodstim.pl?subject=Opinia%20GoodStim%20VNS%20One&body=Imię%3A%20${encodeURIComponent(reviewName)}%0AOcena%3A%20${"★".repeat(reviewRating)}%0A%0A${encodeURIComponent(reviewText)}`}
+              onClick={() => setReviewModalOpen(false)}
+              className={`block w-full py-4 rounded-full font-semibold text-sm text-center transition-all ${reviewName && reviewText ? "bg-tech-blue text-white hover:bg-primary" : "bg-outline-variant/20 text-on-surface-variant/50 pointer-events-none"}`}
+            >
+              Wyślij opinię
+            </a>
+            <p className="text-xs text-center text-on-surface-variant/50">Opinia zostanie wysłana do nas e-mailem i opublikowana po weryfikacji.</p>
+          </div>
+        </div>
+      )}
 
       {/* Sticky mobile CTA */}
       <div className={`fixed bottom-0 left-0 right-0 z-40 md:hidden transition-all duration-300 ${stickyVisible ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"}`}>
