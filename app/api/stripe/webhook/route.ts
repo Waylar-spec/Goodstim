@@ -6,6 +6,88 @@ import { Resend } from "resend";
 const resend = new Resend(process.env.RESEND_API_KEY);
 const ADMIN_EMAIL = "wojtekdymek95@gmail.com";
 
+export function adminOrderEmailHtml(params: {
+  orderNumber: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  deliveryMethod: string;
+  lockerPoint: string;
+  items: { name: string; qty: number }[];
+  total: number;
+}) {
+  const { orderNumber, customerName, customerEmail, customerPhone, deliveryMethod, lockerPoint, items, total } = params;
+  const delivery = deliveryMethod === "inpost" ? `InPost Paczkomat — ${lockerPoint || "?"}` : "InPost Kurier";
+  const itemsList = items.map(i => `${i.name} ×${i.qty}`).join(", ");
+  const messages = [
+    "Ktoś właśnie uwierzył w GoodStim. Czas działać! 💪",
+    "Kolejny człowiek na drodze do lepszego snu i spokoju. 🌙",
+    "To dopiero początek. Każde zamówienie to krok do przodu. 🚀",
+    "Produkt działa — ludzie kupują. Tak trzymaj! 🔥",
+    "Jeden klient więcej, jedna historia sukcesu w drodze. ✨",
+  ];
+  const msg = messages[Math.floor(total * 137) % messages.length];
+
+  return `<!DOCTYPE html>
+<html lang="pl">
+<head><meta charset="utf-8"/></head>
+<body style="margin:0;padding:0;background:#050a14;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#050a14;padding:32px 0">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%">
+
+        <!-- TOP BANNER -->
+        <tr><td style="background:linear-gradient(135deg,#0d2137 0%,#0a3d2e 100%);border-radius:20px 20px 0 0;padding:36px 40px;text-align:center">
+          <p style="margin:0 0 4px;font-size:13px;font-weight:600;color:#2AE5A5;letter-spacing:3px;text-transform:uppercase">GoodStim · Nowa sprzedaż</p>
+          <p style="margin:0;font-size:48px;line-height:1.1">💸</p>
+          <h1 style="margin:12px 0 0;font-size:36px;font-weight:900;color:#ffffff;letter-spacing:-1px">
+            +${total.toFixed(2)} PLN
+          </h1>
+          <p style="margin:8px 0 0;font-size:15px;color:#94a3b8">${msg}</p>
+        </td></tr>
+
+        <!-- ORDER DETAILS -->
+        <tr><td style="background:#0d1524;padding:32px 40px">
+
+          <!-- Order number badge -->
+          <div style="display:inline-block;background:#1e3a5f;border:1px solid #2563eb40;border-radius:8px;padding:8px 16px;margin-bottom:24px">
+            <span style="color:#60a5fa;font-size:13px;font-weight:700;font-family:monospace;letter-spacing:1px">#${orderNumber}</span>
+          </div>
+
+          <table width="100%" cellpadding="0" cellspacing="0">
+            ${[
+              ["👤 Klient", customerName],
+              ["📧 Email", customerEmail],
+              ["📱 Telefon", customerPhone || "—"],
+              ["📦 Dostawa", delivery],
+              ["🛍 Produkty", itemsList],
+            ].map(([label, value]) => `
+            <tr>
+              <td style="padding:10px 0;border-bottom:1px solid #1e293b;color:#64748b;font-size:13px;width:130px;vertical-align:top">${label}</td>
+              <td style="padding:10px 0;border-bottom:1px solid #1e293b;color:#e2e8f0;font-size:14px;font-weight:500">${value}</td>
+            </tr>`).join("")}
+            <tr>
+              <td style="padding:16px 0 0;color:#64748b;font-size:13px">💰 Kwota</td>
+              <td style="padding:16px 0 0;color:#2AE5A5;font-size:24px;font-weight:900">${total.toFixed(2)} PLN</td>
+            </tr>
+          </table>
+        </td></tr>
+
+        <!-- CTA -->
+        <tr><td style="background:#0d1524;padding:0 40px 36px;border-radius:0 0 20px 20px;text-align:center">
+          <a href="https://goodstim.pl/admin" style="display:inline-block;background:#2563eb;color:#ffffff;font-weight:700;font-size:15px;padding:16px 36px;border-radius:50px;text-decoration:none;letter-spacing:0.3px">
+            Otwórz panel admina →
+          </a>
+          <p style="margin:16px 0 0;color:#334155;font-size:12px">goodstim.pl/admin</p>
+        </td></tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export async function POST(req: NextRequest) {
@@ -88,21 +170,17 @@ export async function POST(req: NextRequest) {
     await resend.emails.send({
       from: process.env.RESEND_FROM ?? "GoodStim <onboarding@resend.dev>",
       to: ADMIN_EMAIL,
-      subject: `💰 Nowe zamówienie #${orderNumber} — ${totalPln.toFixed(2)} PLN`,
-      html: `<!DOCTYPE html><html><body style="font-family:sans-serif;padding:24px;background:#0a0f1e;color:#fff">
-        <h2 style="color:#2AE5A5;margin:0 0 16px">Nowe zamówienie! 🎉</h2>
-        <table style="border-collapse:collapse;width:100%;max-width:480px">
-          <tr><td style="padding:8px 0;color:#94a3b8;width:140px">Zamówienie</td><td style="color:#fff;font-weight:700">#${orderNumber}</td></tr>
-          <tr><td style="padding:8px 0;color:#94a3b8">Klient</td><td style="color:#fff">${meta.customer_name ?? "—"}</td></tr>
-          <tr><td style="padding:8px 0;color:#94a3b8">Email</td><td style="color:#fff">${meta.customer_email ?? "—"}</td></tr>
-          <tr><td style="padding:8px 0;color:#94a3b8">Telefon</td><td style="color:#fff">${meta.customer_phone ?? "—"}</td></tr>
-          <tr><td style="padding:8px 0;color:#94a3b8">Dostawa</td><td style="color:#fff">${meta.delivery_method === "inpost" ? `InPost Paczkomat (${meta.inpost_locker ?? "?"})` : "InPost Kurier"}</td></tr>
-          <tr><td style="padding:8px 0;color:#94a3b8">Produkty</td><td style="color:#fff">${items.map((i: {name:string;qty:number}) => `${i.name} ×${i.qty}`).join(", ")}</td></tr>
-          <tr><td style="padding:8px 0;color:#94a3b8">Kwota</td><td style="color:#2AE5A5;font-size:20px;font-weight:800">${totalPln.toFixed(2)} PLN</td></tr>
-        </table>
-        <br/>
-        <a href="https://goodstim.pl/admin" style="display:inline-block;background:#0057B8;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600">Otwórz panel admina →</a>
-      </body></html>`,
+      subject: `💸 +${totalPln.toFixed(2)} PLN — zamówienie #${orderNumber}`,
+      html: adminOrderEmailHtml({
+        orderNumber,
+        customerName: meta.customer_name ?? "—",
+        customerEmail: meta.customer_email ?? "—",
+        customerPhone: meta.customer_phone ?? "",
+        deliveryMethod: meta.delivery_method ?? "courier",
+        lockerPoint: meta.inpost_locker ?? "",
+        items: items.map((i: { name: string; qty: number }) => ({ name: i.name, qty: i.qty })),
+        total: totalPln,
+      }),
     }).catch(e => console.error("Admin email error:", e));
   }
 
