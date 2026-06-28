@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Icon from "../components/Icon";
 import { useCart } from "../lib/cart";
@@ -8,6 +8,7 @@ import { formatPrice } from "../lib/products";
 import StripeProvider from "../components/StripeProvider";
 import StripeCheckoutForm from "../components/StripeCheckoutForm";
 import InPostWidget from "../components/InPostWidget";
+import { trackBeginCheckout, trackPurchase } from "../lib/analytics";
 
 type Delivery = "courier" | "inpost";
 
@@ -48,6 +49,11 @@ export default function CheckoutPage() {
   const totalAfterDiscount = Math.max(0, total - discountAmount);
   const amountGrosze = Math.round(totalAfterDiscount * 100);
   const orderNumber = useState(() => genOrderNumber())[0];
+
+  useEffect(() => {
+    if (items.length > 0) trackBeginCheckout(items, totalAfterDiscount);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function applyCoupon() {
     if (!couponCode.trim()) return;
@@ -93,7 +99,11 @@ export default function CheckoutPage() {
   }
 
   async function sendConfirmation() {
-    // Email zamówieniowy wysyłany przez webhook Stripe — nie duplikujemy tutaj
+    trackPurchase(
+      orderNumber,
+      totalAfterDiscount,
+      items.map(({ product, qty }) => ({ name: product.name, qty, price: product.price }))
+    );
     if (newsletterAccepted && email) {
       await fetch("/api/email/newsletter", {
         method: "POST",

@@ -8,6 +8,7 @@ import Icon from "./Icon";
 import { useCart } from "../lib/cart";
 import { PRODUCTS, getAccessories, formatPrice } from "../lib/products";
 import toast from "react-hot-toast";
+import { trackViewItem, trackAddToCart } from "../lib/analytics";
 
 const MAIN_PRODUCT = PRODUCTS.find((p) => p.id === "vns-one")!;
 
@@ -47,10 +48,15 @@ export default function ShopClient() {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    trackViewItem({ id: MAIN_PRODUCT.id, name: MAIN_PRODUCT.name, price: MAIN_PRODUCT.price });
+  }, []);
+
   const handleAdd = (productId: string) => {
     const product = PRODUCTS.find((p) => p.id === productId);
     if (!product) return;
     addToCart(product);
+    trackAddToCart({ id: product.id, name: product.name, price: product.price });
     toast.success(`${product.name} dodano do koszyka!`, {
       icon: "🛒",
     });
