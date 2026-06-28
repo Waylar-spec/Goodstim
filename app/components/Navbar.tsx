@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import Icon from "./Icon";
 import { useCart } from "../lib/cart";
@@ -23,8 +24,8 @@ export default function Navbar() {
     <>
       <nav className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md border-b border-white/20 shadow-[0px_4px_20px_rgba(37,37,55,0.04)]">
         <div className="max-w-[1280px] mx-auto flex justify-between items-center px-6 md:px-16 h-20">
-          <Link href="/" className="font-montserrat text-2xl font-bold tracking-tight text-primary">
-            GoodStim
+          <Link href="/" className="flex items-center gap-2">
+            <Image src="/logo.png" alt="GoodStim" width={140} height={40} className="h-10 w-auto" priority />
           </Link>
           <div className="hidden md:flex items-center space-x-8">
             {NAV_LINKS.map((link) => {
