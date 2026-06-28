@@ -1,6 +1,10 @@
 import Stripe from "stripe";
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "../../../lib/db";
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+const ADMIN_EMAIL = "wojtekdymek95@gmail.com";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -61,20 +65,45 @@ export async function POST(req: NextRequest) {
       console.error("DB insert error:", dbErr);
     }
 
-    // Wyślij email potwierdzenia
+    const base = process.env.NEXT_PUBLIC_BASE_URL ?? "";
+
+    // Email potwierdzenia do klienta
     if (meta.customer_email) {
-      await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/email/order`, {
+      await fetch(`${base}/api/email/order`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: meta.customer_email,
-          firstName: meta.customer_name ?? "Kliencie",
+          firstName: (meta.customer_name ?? "Kliencie").split(" ")[0],
           orderNumber,
           items,
           total: totalPln,
+          deliveryMethod: meta.delivery_method ?? "courier",
+          lockerPoint: meta.inpost_locker ?? "",
         }),
       });
     }
+
+    // Powiadomienie dla admina
+    await resend.emails.send({
+      from: process.env.RESEND_FROM ?? "GoodStim <onboarding@resend.dev>",
+      to: ADMIN_EMAIL,
+      subject: `💰 Nowe zamówienie #${orderNumber} — ${totalPln.toFixed(2)} PLN`,
+      html: `<!DOCTYPE html><html><body style="font-family:sans-serif;padding:24px;background:#0a0f1e;color:#fff">
+        <h2 style="color:#2AE5A5;margin:0 0 16px">Nowe zamówienie! 🎉</h2>
+        <table style="border-collapse:collapse;width:100%;max-width:480px">
+          <tr><td style="padding:8px 0;color:#94a3b8;width:140px">Zamówienie</td><td style="color:#fff;font-weight:700">#${orderNumber}</td></tr>
+          <tr><td style="padding:8px 0;color:#94a3b8">Klient</td><td style="color:#fff">${meta.customer_name ?? "—"}</td></tr>
+          <tr><td style="padding:8px 0;color:#94a3b8">Email</td><td style="color:#fff">${meta.customer_email ?? "—"}</td></tr>
+          <tr><td style="padding:8px 0;color:#94a3b8">Telefon</td><td style="color:#fff">${meta.customer_phone ?? "—"}</td></tr>
+          <tr><td style="padding:8px 0;color:#94a3b8">Dostawa</td><td style="color:#fff">${meta.delivery_method === "inpost" ? `InPost Paczkomat (${meta.inpost_locker ?? "?"})` : "InPost Kurier"}</td></tr>
+          <tr><td style="padding:8px 0;color:#94a3b8">Produkty</td><td style="color:#fff">${items.map((i: {name:string;qty:number}) => `${i.name} ×${i.qty}`).join(", ")}</td></tr>
+          <tr><td style="padding:8px 0;color:#94a3b8">Kwota</td><td style="color:#2AE5A5;font-size:20px;font-weight:800">${totalPln.toFixed(2)} PLN</td></tr>
+        </table>
+        <br/>
+        <a href="https://goodstim.pl/admin" style="display:inline-block;background:#0057B8;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600">Otwórz panel admina →</a>
+      </body></html>`,
+    }).catch(e => console.error("Admin email error:", e));
   }
 
   return NextResponse.json({ received: true });

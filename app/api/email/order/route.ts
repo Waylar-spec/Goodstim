@@ -10,8 +10,10 @@ function orderEmailHtml(params: {
   orderNumber: string;
   items: OrderItem[];
   total: number;
+  deliveryMethod?: string;
+  lockerPoint?: string;
 }) {
-  const { firstName, orderNumber, items, total } = params;
+  const { firstName, orderNumber, items, total, deliveryMethod, lockerPoint } = params;
   const formatPLN = (n: number) =>
     new Intl.NumberFormat("pl-PL", { style: "currency", currency: "PLN" }).format(n);
 
@@ -29,6 +31,12 @@ function orderEmailHtml(params: {
       </tr>`
     )
     .join("");
+
+  const isPaczkomat = deliveryMethod === "inpost";
+  const deliveryLabel = isPaczkomat ? "InPost Paczkomat" : "InPost Kurier";
+  const deliveryNote = isPaczkomat
+    ? `Paczkomat: <strong>${lockerPoint || "wybrany przez Ciebie"}</strong>`
+    : "Kurier dostarczy pod wskazany adres";
 
   return `<!DOCTYPE html>
 <html lang="pl">
@@ -49,8 +57,7 @@ function orderEmailHtml(params: {
             Dziękujemy, ${firstName}! 🎉
           </h1>
           <p style="color:#718096;font-size:15px;margin:0 0 32px;line-height:1.6">
-            Twoje zamówienie <strong style="color:#252537">#${orderNumber}</strong> zostało przyjęte.
-            Poinformujemy Cię, gdy paczka wyruszy w drogę.
+            Twoje zamówienie <strong style="color:#252537">#${orderNumber}</strong> zostało przyjęte i jest w realizacji.
           </p>
 
           <!-- Order table -->
@@ -62,22 +69,31 @@ function orderEmailHtml(params: {
             </tr>
           </table>
 
-          <!-- Shipping note -->
-          <div style="background:#f7fdf9;border-left:4px solid #2AE5A5;padding:16px 20px;border-radius:8px;margin-bottom:32px">
-            <p style="margin:0;color:#252537;font-size:14px;line-height:1.6">
-              📦 Wysyłka w ciągu <strong>1–2 dni roboczych</strong> · Darmowa dostawa kurierska
+          <!-- Delivery info -->
+          <div style="background:#f7fdf9;border:1px solid #E5F6EF;border-radius:12px;padding:20px;margin-bottom:20px">
+            <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:#718096;text-transform:uppercase;letter-spacing:0.5px">Dostawa</p>
+            <p style="margin:0 0 4px;color:#252537;font-weight:600;font-size:15px">📦 ${deliveryLabel}</p>
+            <p style="margin:0;color:#718096;font-size:14px">${deliveryNote}</p>
+            <p style="margin:8px 0 0;color:#718096;font-size:13px">Wysyłka w ciągu <strong style="color:#252537">1–2 dni roboczych</strong></p>
+          </div>
+
+          <!-- Tracking placeholder -->
+          <div style="background:#EEF4FF;border-left:4px solid #0057B8;padding:16px 20px;border-radius:8px;margin-bottom:32px">
+            <p style="margin:0;color:#252537;font-size:14px;font-weight:600">🔍 Numer śledzenia</p>
+            <p style="margin:6px 0 0;color:#4A5568;font-size:13px;line-height:1.6">
+              Wyślemy Ci osobnego maila z numerem śledzenia InPost, gdy tylko nadamy paczkę.
             </p>
           </div>
 
           <!-- CTA -->
           <div style="text-align:center;margin-bottom:32px">
             <a href="https://goodstim.pl/the-science" style="display:inline-block;background:#0057B8;color:#ffffff;font-weight:700;font-size:14px;padding:16px 32px;border-radius:50px;text-decoration:none">
-              Poznaj naukę za GoodStim
+              Poznaj naukę za GoodStim →
             </a>
           </div>
 
           <p style="color:#a0aec0;font-size:13px;text-align:center;margin:0">
-            Masz pytania? Napisz na <a href="mailto:hello@goodstim.pl" style="color:#2AE5A5">hello@goodstim.pl</a>
+            Masz pytania? Napisz na <a href="mailto:kontakt@goodstim.pl" style="color:#2AE5A5">kontakt@goodstim.pl</a>
           </p>
         </td></tr>
 
@@ -98,12 +114,14 @@ function orderEmailHtml(params: {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { email, firstName, orderNumber, items, total } = body as {
+    const { email, firstName, orderNumber, items, total, deliveryMethod, lockerPoint } = body as {
       email: string;
       firstName: string;
       orderNumber: string;
       items: OrderItem[];
       total: number;
+      deliveryMethod?: string;
+      lockerPoint?: string;
     };
 
     if (!email || !firstName || !items?.length) {
@@ -114,7 +132,7 @@ export async function POST(req: NextRequest) {
       from: process.env.RESEND_FROM ?? "GoodStim <onboarding@resend.dev>",
       to: email,
       subject: `Potwierdzenie zamówienia #${orderNumber} — GoodStim`,
-      html: orderEmailHtml({ firstName, orderNumber, items, total }),
+      html: orderEmailHtml({ firstName, orderNumber, items, total, deliveryMethod, lockerPoint }),
     });
 
     if (error) return NextResponse.json({ error }, { status: 500 });

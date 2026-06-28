@@ -54,5 +54,21 @@ export async function POST(req: NextRequest) {
   const shipmentId = String(data.id ?? "");
   await sql`UPDATE orders SET tracking_number = ${tracking}, shipment_id = ${shipmentId}, status = 'shipped', updated_at = NOW() WHERE id = ${order_id}`;
 
+  // Wyślij email z numerem śledzenia do klienta
+  if (order.customer_email) {
+    const base = process.env.NEXT_PUBLIC_BASE_URL ?? "";
+    await fetch(`${base}/api/email/tracking`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: order.customer_email,
+        firstName: (order.customer_name ?? "Kliencie").split(" ")[0],
+        orderNumber: order.order_number,
+        trackingNumber: tracking,
+        deliveryMethod: order.delivery_method,
+      }),
+    }).catch(e => console.error("Tracking email error:", e));
+  }
+
   return NextResponse.json({ ok: true, tracking_number: tracking, shipment_id: shipmentId, shipment: data });
 }
