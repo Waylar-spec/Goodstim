@@ -34,16 +34,20 @@ export async function POST(req: NextRequest) {
       await sql`
         INSERT INTO orders (
           order_number, stripe_payment_intent_id, status,
-          customer_name, customer_email,
+          customer_name, customer_email, customer_phone,
           address_line1, city, postal_code,
+          delivery_method, inpost_locker,
           items, total_pln
         ) VALUES (
           ${orderNumber}, ${intent.id}, 'new',
           ${meta.customer_name ?? ""},
           ${meta.customer_email ?? ""},
+          ${meta.customer_phone ?? ""},
           ${meta.address_line1 ?? ""},
           ${meta.city ?? ""},
           ${meta.postal_code ?? ""},
+          ${meta.delivery_method ?? "courier"},
+          ${meta.inpost_locker ?? ""},
           ${JSON.stringify(items)},
           ${totalPln}
         )

@@ -6,10 +6,22 @@ import { NextRequest, NextResponse } from "next/server";
 const BYPASS_KEY = "gs-podglad-2026";
 
 export function proxy(req: NextRequest) {
+  const { pathname, searchParams } = req.nextUrl;
+
+  // Ochrona panelu admin — sprawdź przed maintenance
+  if (pathname.startsWith("/admin") && pathname !== "/admin/login") {
+    const adminCookie = req.cookies.get("gs_admin")?.value;
+    if (!adminCookie || adminCookie !== process.env.ADMIN_PASSWORD) {
+      const url = req.nextUrl.clone();
+      url.pathname = "/admin/login";
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next();
+  }
+
   // Maintenance wyłączony → wszystko działa normalnie
   if (process.env.MAINTENANCE_MODE !== "1") return NextResponse.next();
-
-  const { pathname, searchParams } = req.nextUrl;
 
   // Przepuść zasoby wewnętrzne, API (webhooki Stripe, maile) i samą stronę maintenance
   if (

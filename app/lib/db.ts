@@ -28,15 +28,27 @@ export async function initDb() {
 
       customer_name TEXT NOT NULL,
       customer_email TEXT NOT NULL,
+      customer_phone TEXT,
       address_line1 TEXT,
       city TEXT,
       postal_code TEXT,
+      delivery_method TEXT NOT NULL DEFAULT 'courier',
+      inpost_locker TEXT,
 
       items JSONB NOT NULL DEFAULT '[]',
       total_pln NUMERIC(10,2) NOT NULL,
+
+      tracking_number TEXT,
+      label_url TEXT,
 
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `;
+  // Migrate existing tables — add columns if missing
+  await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_phone TEXT`;
+  await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_method TEXT NOT NULL DEFAULT 'courier'`;
+  await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS inpost_locker TEXT`;
+  await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS tracking_number TEXT`;
+  await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS label_url TEXT`;
 }
