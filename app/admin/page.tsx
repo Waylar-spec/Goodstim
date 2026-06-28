@@ -187,6 +187,19 @@ export default function AdminPage() {
     router.push("/admin/login");
   }
 
+  async function clearAllOrders() {
+    if (!confirm("Usuń WSZYSTKIE zamówienia? Tej operacji nie można cofnąć.")) return;
+    const res = await fetch("/api/admin/orders/clear", { method: "DELETE" });
+    const data = await res.json();
+    if (res.ok) {
+      alert(`Usunięto ${data.deleted} zamówień.`);
+      load();
+      setSelected(null);
+    } else {
+      alert("Błąd: " + data.error);
+    }
+  }
+
   // Orders tab
   const q = search.trim().toLowerCase();
   const filtered = orders
@@ -303,7 +316,12 @@ export default function AdminPage() {
             ))}
           </div>
         </div>
-        <button onClick={logout} className="text-sm text-gray-400 hover:text-white transition-colors">Wyloguj</button>
+        <div className="flex items-center gap-4">
+          <button onClick={clearAllOrders} className="text-xs text-red-500 hover:text-red-400 transition-colors border border-red-500/30 hover:border-red-400/50 px-3 py-1 rounded-lg">
+            🗑 Wyczyść zamówienia
+          </button>
+          <button onClick={logout} className="text-sm text-gray-400 hover:text-white transition-colors">Wyloguj</button>
+        </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
