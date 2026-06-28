@@ -23,7 +23,7 @@ const STEPS = [
 ];
 
 const HERO_IMG = "/product.png";
-const LIFESTYLE_IMG = "https://lh3.googleusercontent.com/aida-public/AB6AXuCkPFGs-i4qzYjJFhlDeCvRD2RUGQJLoh_aAGB0RDBPH-JLRV48pNRoWZfaOeRZoLTBToutvx57Wsbi0o59FYYc5WvyGAn-coEjnUEHrnl57wuFflpfP5w885WIkNbjQ2blJVBFhscs6XzdVocM4KY6LqrQ3vcPJcoZexe5-uf4q2zRL8E_7Rf7X_1B2nQRPHTYCGSwsgPTY-uACamz1TbTnWd7aBKfv_GMn3nz--Lxf3gGCh3r0MYfalYBGoYLw-h-f96b9t7Lgw";
+const LIFESTYLE_IMG = "/images/2.avif";
 
 export default function HomeClient() {
   const [email, setEmail] = useState("");
