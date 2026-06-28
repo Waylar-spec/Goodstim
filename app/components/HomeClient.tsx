@@ -23,7 +23,7 @@ const STEPS = [
 ];
 
 const HERO_IMG = "/product.png";
-const LIFESTYLE_IMG = "/images/lifestyle.png";
+const LIFESTYLE_IMG = "/images/2.avif";
 
 export default function HomeClient() {
   const [email, setEmail] = useState("");
