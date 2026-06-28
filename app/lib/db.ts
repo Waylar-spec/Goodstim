@@ -53,4 +53,8 @@ export async function initDb() {
   await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS tracking_number TEXT`;
   await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipment_id TEXT`;
   await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS label_url TEXT`;
+  await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS notes TEXT`;
+  await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS company_name TEXT`;
+  await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS nip TEXT`;
+  await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS invoice_type TEXT NOT NULL DEFAULT 'receipt'`;
 }

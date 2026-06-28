@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
-import { getPost, getAllSlugs, getRelated } from "../../lib/blog";
+import { getPost, getAllSlugs, getRelated, BLOG_IMAGES } from "../../lib/blog";
 
 export function generateStaticParams() {
   return getAllSlugs().map((slug) => ({ slug }));
@@ -70,8 +70,18 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           </Link>
 
           {/* Header */}
-          <div className="text-center mb-10">
-            <div className="text-[64px] mb-4">{post.cover}</div>
+          <div className="mb-10">
+            {BLOG_IMAGES[post.slug] ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={BLOG_IMAGES[post.slug]}
+                alt={post.title}
+                className="w-full rounded-3xl object-cover aspect-[16/7] mb-8"
+              />
+            ) : (
+              <div className="text-center text-[64px] mb-4">{post.cover}</div>
+            )}
+            <div className="text-center">
             <div className="flex items-center justify-center gap-3 mb-4">
               <span className={`text-xs px-3 py-1 rounded-full font-semibold ${CAT_COLORS[post.category]}`}>
                 {post.category}
@@ -80,6 +90,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
               <span className="text-xs text-on-surface-variant">· {formatDate(post.date)}</span>
             </div>
             <h1 className="font-montserrat text-[34px] leading-[42px] font-bold text-primary">{post.title}</h1>
+            </div>
           </div>
 
           {/* Body */}
@@ -114,8 +125,13 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                   href={`/blog/${r.slug}`}
                   className="group flex flex-col rounded-2xl overflow-hidden border border-outline-variant/20 bg-surface-container-lowest hover:shadow-lg transition-shadow"
                 >
-                  <div className="bg-gradient-to-br from-soft-mint to-surface-container flex items-center justify-center py-10 text-[48px]">
-                    {r.cover}
+                  <div className="relative overflow-hidden bg-gradient-to-br from-soft-mint to-surface-container aspect-[16/9]">
+                    {BLOG_IMAGES[r.slug] ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={BLOG_IMAGES[r.slug]} alt={r.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-[48px]">{r.cover}</div>
+                    )}
                   </div>
                   <div className="p-5">
                     <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold ${CAT_COLORS[r.category]}`}>

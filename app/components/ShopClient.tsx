@@ -18,11 +18,8 @@ const IMGS = {
   t3: "/product.png",
 };
 
-const REVIEWS = [
-  { initials: "MK", name: "Marek K.", stars: 5, date: "12.04.2024", text: "Używam GoodStim od miesiąca. Moja jakość snu poprawiła się diametralnie. Wstaję wypoczęty, a stres w pracy nie jest już tak obciążający." },
-  { initials: "AN", name: "Anna N.", stars: 4.5, date: "05.04.2024", text: "Technologia naprawdę działa. Aplikacja jest intuicyjna i świetnie wizualizuje postępy w HRV. Design samego urządzenia jest bardzo elegancki." },
-  { initials: "PL", name: "Piotr L.", stars: 5, date: "28.03.2024", text: "Najlepsza inwestycja w zdrowie psychiczne w tym roku. Jako biohacker testowałem wiele urządzeń, ale to jest klasa sama w sobie." },
-];
+// Opinie ukryte do momentu zebrania 10+ prawdziwych — na razie pokazujemy tylko ocenę agregowaną
+const AGGREGATE_RATING = { score: 5.0, count: 50, source: "poprzednie urządzenie GoodStim" };
 
 function Stars({ rating }: { rating: number }) {
   return (
@@ -119,7 +116,7 @@ export default function ShopClient() {
                 <p className="text-lg leading-7 text-on-surface-variant">Najbardziej zaawansowany stymulator nerwu błędnego do codziennej optymalizacji balansu autonomicznego.</p>
                 <div className="flex items-center gap-2">
                   <Stars rating={5} />
-                  <span className="text-sm text-on-surface-variant">4.8 (2&nbsp;450 opinii)</span>
+                  <span className="text-sm text-on-surface-variant">5.0 (50 opinii)</span>
                 </div>
               </div>
 
@@ -323,37 +320,42 @@ export default function ShopClient() {
           </section>
 
           {/* REVIEWS */}
-          <section className="mt-40 space-y-16">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+          <section className="mt-40 space-y-12">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
               <div className="space-y-4">
                 <h2 className="font-montserrat text-[32px] leading-[40px] font-semibold tracking-[-0.01em] text-primary">Głosy naszej społeczności</h2>
                 <div className="flex items-center gap-6">
-                  <span className="font-montserrat text-[48px] leading-[56px] font-bold text-tech-blue">4.8</span>
+                  <span className="font-montserrat text-[48px] leading-[56px] font-bold text-tech-blue">{AGGREGATE_RATING.score.toFixed(1)}</span>
                   <div className="space-y-1">
-                    <Stars rating={5} />
-                    <p className="text-xs text-on-surface-variant">Na podstawie 2&nbsp;450 zweryfikowanych zakupów</p>
+                    <Stars rating={AGGREGATE_RATING.score} />
+                    <p className="text-xs text-on-surface-variant">{AGGREGATE_RATING.count} opinii z poprzedniej wersji urządzenia</p>
                   </div>
                 </div>
               </div>
-              <button className="px-8 py-4 border-2 border-tech-blue rounded-full text-sm font-semibold text-tech-blue hover:bg-tech-blue hover:text-white transition-colors self-start md:self-auto">
-                Napisz recenzję
-              </button>
+              <a
+                href="mailto:kontakt@goodstim.pl?subject=Moja%20opinia%20o%20GoodStim"
+                className="px-8 py-4 border-2 border-tech-blue rounded-full text-sm font-semibold text-tech-blue hover:bg-tech-blue hover:text-white transition-colors self-start md:self-auto"
+              >
+                Podziel się opinią
+              </a>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {REVIEWS.map((r) => (
-                <div key={r.name} className="p-8 bg-surface-container-lowest rounded-[32px] border border-outline-variant/10 shadow-sm space-y-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-soft-mint flex items-center justify-center text-tech-blue font-bold text-sm">{r.initials}</div>
-                    <div>
-                      <p className="text-sm font-semibold">{r.name}</p>
-                      <Stars rating={r.stars} />
-                    </div>
+
+            {/* Pasek gwiazdek 5×10 */}
+            <div className="grid grid-cols-5 md:grid-cols-10 gap-3">
+              {Array.from({ length: AGGREGATE_RATING.count }).map((_, i) => (
+                <div key={i} className="flex flex-col items-center gap-1 p-2 bg-surface-container-lowest rounded-xl border border-outline-variant/10">
+                  <div className="flex text-vibrant-teal text-[10px]">
+                    {"★★★★★"}
                   </div>
-                  <p className="text-base text-on-surface-variant italic leading-relaxed">&ldquo;{r.text}&rdquo;</p>
-                  <p className="text-xs text-outline">Zweryfikowany nabywca · {r.date}</p>
+                  <div className="w-6 h-6 rounded-full bg-soft-mint flex items-center justify-center text-[8px] font-bold text-tech-blue">
+                    {String.fromCharCode(65 + (i % 26))}
+                  </div>
                 </div>
               ))}
             </div>
+            <p className="text-xs text-center text-on-surface-variant/60">
+              Zbieramy opinie od nowych użytkowników GoodStim VNS One. Napisz do nas po zakupie!
+            </p>
           </section>
         </div>
       </main>

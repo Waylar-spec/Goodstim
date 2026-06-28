@@ -14,10 +14,14 @@ type Order = {
   postal_code: string;
   delivery_method: string;
   inpost_locker: string;
+  company_name: string;
+  nip: string;
+  invoice_type: string;
   items: { name: string; qty: number; price: number }[];
   total_pln: string;
   tracking_number: string | null;
   shipment_id: string | null;
+  notes: string | null;
   created_at: string;
   stripe_payment_intent_id: string;
 };
@@ -40,7 +44,10 @@ export default function AdminPage() {
   const [labelLoading, setLabelLoading] = useState(false);
   const [labelMsg, setLabelMsg] = useState("");
   const [filter, setFilter] = useState("all");
+  const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [notesDraft, setNotesDraft] = useState("");
+  const [notesSaving, setNotesSaving] = useState(false);
 
   async function load() {
     const res = await fetch("/api/admin/orders");
@@ -80,12 +87,53 @@ export default function AdminPage() {
     setLabelLoading(false);
   }
 
+  async function saveNotes(order: Order) {
+    setNotesSaving(true);
+    await fetch("/api/admin/orders", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: order.id, notes: notesDraft }),
+    });
+    setOrders(o => o.map(x => x.id === order.id ? { ...x, notes: notesDraft } : x));
+    if (selected?.id === order.id) setSelected(s => s ? { ...s, notes: notesDraft } : s);
+    setNotesSaving(false);
+  }
+
+  function exportCSV() {
+    const cols = ["ID", "Zamówienie", "Data", "Status", "Klient", "Email", "Telefon", "Dostawa", "Paczkomat/Adres", "Faktura", "NIP", "Firma", "Śledzenie", "Kwota (PLN)"];
+    const rows = orders.map(o => [
+      o.id,
+      o.order_number,
+      new Date(o.created_at).toLocaleString("pl-PL"),
+      o.status,
+      o.customer_name,
+      o.customer_email,
+      o.customer_phone ?? "",
+      o.delivery_method === "inpost" ? "InPost Paczkomat" : "InPost Kurier",
+      o.inpost_locker || `${o.address_line1}, ${o.city} ${o.postal_code}`.trim(),
+      o.invoice_type === "invoice" ? "Faktura" : "Paragon",
+      o.nip ?? "",
+      o.company_name ?? "",
+      o.tracking_number ?? "",
+      parseFloat(o.total_pln).toFixed(2),
+    ]);
+    const csv = [cols, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `goodstim-zamowienia-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+  }
+
   async function logout() {
     await fetch("/api/admin/login", { method: "DELETE" });
     router.push("/admin/login");
   }
 
-  const filtered = filter === "all" ? orders : orders.filter(o => o.status === filter);
+  const q = search.trim().toLowerCase();
+  const filtered = orders
+    .filter(o => filter === "all" || o.status === filter)
+    .filter(o => !q || o.customer_name.toLowerCase().includes(q) || o.customer_email.toLowerCase().includes(q) || (o.customer_phone ?? "").includes(q) || o.order_number.toLowerCase().includes(q));
   const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
   const pageClamped = Math.min(page, totalPages);
   const paged = filtered.slice((pageClamped - 1) * PER_PAGE, pageClamped * PER_PAGE);
@@ -125,8 +173,24 @@ export default function AdminPage() {
         <div className="flex gap-6">
           {/* Orders list */}
           <div className="flex-1 min-w-0">
+            {/* Search + CSV */}
+            <div className="flex gap-3 mb-4">
+              <input
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                placeholder="Szukaj: imię, email, telefon, nr zamówienia…"
+                className="flex-1 bg-[#111827] border border-white/10 rounded-xl px-4 py-2 text-sm text-white placeholder-gray-500 outline-none focus:border-blue-500 transition-colors"
+              />
+              <button
+                onClick={exportCSV}
+                className="px-4 py-2 rounded-xl bg-[#111827] border border-white/10 text-xs font-semibold text-gray-300 hover:text-white hover:border-white/30 transition-colors whitespace-nowrap"
+              >
+                ⬇ Eksport CSV
+              </button>
+            </div>
+
             {/* Filter tabs */}
-            <div className="flex gap-2 mb-4">
+            <div className="flex gap-2 mb-4 flex-wrap">
               {["all", "new", "processing", "shipped", "delivered"].map(f => (
                 <button key={f}
                   onClick={() => { setFilter(f); setPage(1); }}
@@ -210,6 +274,11 @@ export default function AdminPage() {
                 <h2 className="font-bold text-lg">{selected.order_number}</h2>
                 <button onClick={() => setSelected(null)} className="text-gray-500 hover:text-white text-xl">×</button>
               </div>
+              {selected.invoice_type === "invoice" && (
+                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-3 py-2 text-xs text-yellow-300">
+                  <strong>Faktura VAT</strong> — {selected.company_name || "—"} · NIP: {selected.nip || "—"}
+                </div>
+              )}
 
               {/* Status */}
               <div>
@@ -279,6 +348,26 @@ export default function AdminPage() {
                   <p className="font-mono text-sm text-green-400">{selected.tracking_number}</p>
                 </div>
               )}
+
+              {/* Notes */}
+              <div>
+                <p className="text-xs text-gray-400 mb-2">Notatki (wewnętrzne)</p>
+                <textarea
+                  rows={3}
+                  value={notesDraft !== "" || selected.notes === null ? notesDraft : (selected.notes ?? "")}
+                  onFocus={() => setNotesDraft(selected.notes ?? "")}
+                  onChange={(e) => setNotesDraft(e.target.value)}
+                  placeholder="Wpisz notatkę do zamówienia…"
+                  className="w-full bg-[#0d1524] border border-white/10 rounded-xl px-3 py-2 text-sm text-gray-200 placeholder-gray-600 outline-none focus:border-blue-500 resize-none transition-colors"
+                />
+                <button
+                  onClick={() => saveNotes(selected)}
+                  disabled={notesSaving}
+                  className="mt-1.5 text-xs font-semibold text-blue-400 hover:text-blue-300 disabled:opacity-50 transition-colors"
+                >
+                  {notesSaving ? "Zapisuję…" : "Zapisz notatkę"}
+                </button>
+              </div>
 
               {/* Actions */}
               <div className="space-y-2 pt-2 border-t border-white/10">

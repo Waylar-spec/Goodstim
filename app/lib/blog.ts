@@ -5,7 +5,8 @@ export type BlogPost = {
   category: "Sen" | "Stres" | "Nauka" | "Regeneracja" | "Poradnik";
   readMin: number;
   date: string; // ISO
-  cover: string; // emoji or image path
+  cover: string; // emoji fallback
+  image?: string; // Unsplash photo URL
   metaDescription: string;
   keywords: string[];
   content: string; // HTML
@@ -355,6 +356,29 @@ ${DISCLAIMER}
 `,
   },
 ];
+
+export const BLOG_IMAGES: Record<string, string> = {
+  "czym-jest-nerw-bledny":
+    "https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=1200&q=80&fit=crop",
+  "tvns-a-redukcja-stresu":
+    "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1200&q=80&fit=crop",
+  "7-sposobow-na-pobudzenie-nerwu-blednego":
+    "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1200&q=80&fit=crop",
+  "lepszy-sen-z-tvns":
+    "https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=1200&q=80&fit=crop",
+  "hrv-co-to-jest":
+    "https://images.unsplash.com/photo-1628771065518-0d82f1938462?w=1200&q=80&fit=crop",
+  "tvns-dla-sportowcow":
+    "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1200&q=80&fit=crop",
+  "spokoj-po-pracy":
+    "https://images.unsplash.com/photo-1499209974431-9dddcece7f88?w=1200&q=80&fit=crop",
+  "tvns-vs-medytacja":
+    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80&fit=crop",
+  "jak-zaczac-z-goodstim":
+    "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=1200&q=80&fit=crop",
+  "nerw-bledny-koncentracja-energia":
+    "https://images.unsplash.com/photo-1497032628192-86f99bcd76bc?w=1200&q=80&fit=crop",
+};
 
 export const CATEGORIES = ["Wszystkie", "Sen", "Stres", "Nauka", "Regeneracja", "Poradnik"] as const;
 

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { BlogPost, CATEGORIES } from "../lib/blog";
+import { BlogPost, CATEGORIES, BLOG_IMAGES } from "../lib/blog";
 
 const CAT_COLORS: Record<string, string> = {
   Sen: "bg-indigo-100 text-indigo-700",
@@ -49,8 +49,17 @@ export default function BlogIndexClient({ posts }: { posts: BlogPost[] }) {
           className="group block mb-12 rounded-3xl overflow-hidden border border-outline-variant/20 bg-surface-container-lowest hover:shadow-xl transition-shadow"
         >
           <div className="grid md:grid-cols-2">
-            <div className="bg-gradient-to-br from-tech-blue to-primary flex items-center justify-center py-16 text-[80px]">
-              {featured.cover}
+            <div className="relative overflow-hidden bg-gradient-to-br from-tech-blue to-primary min-h-[220px] md:min-h-0">
+              {BLOG_IMAGES[featured.slug] ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={BLOG_IMAGES[featured.slug]}
+                  alt={featured.title}
+                  className="w-full h-full object-cover absolute inset-0 group-hover:scale-105 transition-transform duration-700"
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full py-16 text-[80px]">{featured.cover}</div>
+              )}
             </div>
             <div className="p-8 md:p-10 flex flex-col justify-center">
               <div className="flex items-center gap-3 mb-3">
@@ -77,8 +86,17 @@ export default function BlogIndexClient({ posts }: { posts: BlogPost[] }) {
             href={`/blog/${post.slug}`}
             className="group flex flex-col rounded-2xl overflow-hidden border border-outline-variant/20 bg-surface-container-lowest hover:shadow-lg transition-shadow"
           >
-            <div className="bg-gradient-to-br from-soft-mint to-surface-container flex items-center justify-center py-12 text-[56px]">
-              {post.cover}
+            <div className="relative overflow-hidden bg-gradient-to-br from-soft-mint to-surface-container aspect-[16/9]">
+              {BLOG_IMAGES[post.slug] ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={BLOG_IMAGES[post.slug]}
+                  alt={post.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full text-[56px]">{post.cover}</div>
+              )}
             </div>
             <div className="p-6 flex flex-col flex-1">
               <div className="flex items-center gap-2 mb-3">

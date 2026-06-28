@@ -19,12 +19,13 @@ export async function GET() {
 
 export async function PATCH(req: NextRequest) {
   if (!await isAuthed()) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const { id, status, tracking_number } = await req.json();
+  const { id, status, tracking_number, notes } = await req.json();
   const sql = getDb();
   await sql`
     UPDATE orders SET
       status = COALESCE(${status ?? null}, status),
       tracking_number = COALESCE(${tracking_number ?? null}, tracking_number),
+      notes = COALESCE(${notes ?? null}, notes),
       updated_at = NOW()
     WHERE id = ${id}
   `;

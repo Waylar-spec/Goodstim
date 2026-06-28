@@ -37,6 +37,7 @@ export async function POST(req: NextRequest) {
           customer_name, customer_email, customer_phone,
           address_line1, city, postal_code,
           delivery_method, inpost_locker,
+          company_name, nip, invoice_type,
           items, total_pln
         ) VALUES (
           ${orderNumber}, ${intent.id}, 'new',
@@ -48,6 +49,9 @@ export async function POST(req: NextRequest) {
           ${meta.postal_code ?? ""},
           ${meta.delivery_method ?? "courier"},
           ${meta.inpost_locker ?? ""},
+          ${meta.company_name ?? ""},
+          ${meta.nip ?? ""},
+          ${meta.want_invoice === "1" ? "invoice" : "receipt"},
           ${JSON.stringify(items)},
           ${totalPln}
         )

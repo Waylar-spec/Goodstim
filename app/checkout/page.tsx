@@ -35,6 +35,9 @@ export default function CheckoutPage() {
   const [newsletterAccepted, setNewsletterAccepted] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [orderState, setOrderState] = useState<"idle" | "ok">("idle");
+  const [wantInvoice, setWantInvoice] = useState(false);
+  const [companyName, setCompanyName] = useState("");
+  const [nip, setNip] = useState("");
   const [couponCode, setCouponCode] = useState("");
   const [couponState, setCouponState] = useState<"idle" | "loading" | "ok" | "error">("idle");
   const [couponLabel, setCouponLabel] = useState("");
@@ -75,6 +78,8 @@ export default function CheckoutPage() {
       return "Wybierz paczkomat z mapy.";
     if (delivery === "inpost" && !phone.trim())
       return "Podaj numer telefonu — InPost wyśle na niego kod do odbioru.";
+    if (wantInvoice && !companyName.trim()) return "Podaj nazwę firmy do faktury.";
+    if (wantInvoice && !nip.trim()) return "Podaj NIP do faktury.";
     if (!termsAccepted) return "Akceptacja Regulaminu jest wymagana.";
     if (!privacyAccepted) return "Akceptacja Polityki prywatności jest wymagana.";
     return null;
@@ -112,6 +117,9 @@ export default function CheckoutPage() {
     city: delivery === "inpost" ? (selectedLocker?.address.city ?? "") : city,
     postal_code: delivery === "inpost" ? "" : postalCode,
     inpost_locker: selectedLocker?.name ?? "",
+    want_invoice: wantInvoice ? "1" : "0",
+    company_name: companyName,
+    nip: nip,
     order_number: orderNumber,
     coupon_code: discountPct > 0 ? couponCode.toUpperCase() : "",
     discount_pct: discountPct > 0 ? String(discountPct) : "",
@@ -211,7 +219,7 @@ export default function CheckoutPage() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                   {[
-                    { id: "courier" as Delivery, icon: "local_shipping", label: "Kurier DPD", sub: "1–2 dni robocze · Bezpłatna" },
+                    { id: "courier" as Delivery, icon: "local_shipping", label: "InPost Kurier", sub: "1–2 dni robocze · Bezpłatna" },
                     { id: "inpost" as Delivery, icon: "inventory_2", label: "InPost Paczkomat", sub: "1–2 dni robocze · Bezpłatna" },
                   ].map((opt) => (
                     <button key={opt.id} type="button" onClick={() => { setDelivery(opt.id); setSelectedLocker(null); }}
@@ -259,6 +267,34 @@ export default function CheckoutPage() {
                     onSelect={(locker) => setSelectedLocker(locker)}
                     selected={selectedLocker}
                   />
+                )}
+              </section>
+
+              {/* 2b. Dane do faktury */}
+              <section className="mb-12">
+                <label className="flex items-center gap-3 cursor-pointer group mb-4">
+                  <input type="checkbox" checked={wantInvoice} onChange={(e) => setWantInvoice(e.target.checked)}
+                    className="w-4 h-4 rounded accent-vibrant-teal flex-shrink-0 cursor-pointer" />
+                  <span className="text-sm font-semibold text-on-surface-variant">Chcę fakturę VAT na firmę</span>
+                </label>
+                {wantInvoice && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pl-7">
+                    <div className="md:col-span-2 flex flex-col gap-2">
+                      <label className="text-sm font-semibold text-on-surface-variant px-1">Nazwa firmy *</label>
+                      <input value={companyName} onChange={(e) => setCompanyName(e.target.value)}
+                        className="bg-soft-mint rounded-xl px-4 py-3 border-none input-focus-effect transition-all text-on-surface"
+                        placeholder="np. Firma Sp. z o.o." type="text" />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-semibold text-on-surface-variant px-1">NIP *</label>
+                      <input value={nip} onChange={(e) => setNip(e.target.value)}
+                        className="bg-soft-mint rounded-xl px-4 py-3 border-none input-focus-effect transition-all text-on-surface"
+                        placeholder="np. 1234567890" type="text" />
+                    </div>
+                    <div className="flex items-end pb-1">
+                      <p className="text-xs text-on-surface-variant/70">Fakturę wyślemy e-mailem do 3 dni roboczych od realizacji zamówienia.</p>
+                    </div>
+                  </div>
                 )}
               </section>
 
