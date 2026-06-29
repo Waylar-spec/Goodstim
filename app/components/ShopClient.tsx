@@ -349,15 +349,19 @@ export default function ShopClient() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {accessories.map((acc) => (
-                <div key={acc.id} className="bg-white rounded-[24px] border border-outline-variant/20 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-shadow">
+                <div key={acc.id} className={`bg-white rounded-[24px] border border-outline-variant/20 shadow-sm overflow-hidden flex flex-col transition-shadow ${acc.comingSoon ? "opacity-70" : "hover:shadow-md"}`}>
                   <div className="aspect-square bg-surface-container-low overflow-hidden relative">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={acc.image} alt={acc.name} className="w-full h-full object-cover" />
-                    {acc.badge && (
+                    <img src={acc.image} alt={acc.name} className={`w-full h-full object-cover ${acc.comingSoon ? "grayscale" : ""}`} />
+                    {acc.comingSoon ? (
+                      <span className="absolute top-4 left-4 px-2.5 py-1 bg-on-surface-variant/80 text-white text-[10px] font-bold uppercase tracking-wider rounded-full backdrop-blur-sm">
+                        Wkrótce
+                      </span>
+                    ) : acc.badge ? (
                       <span className="absolute top-4 left-4 px-2.5 py-1 bg-vibrant-teal text-tech-blue text-[10px] font-bold uppercase tracking-wider rounded-full">
                         {acc.badge}
                       </span>
-                    )}
+                    ) : null}
                   </div>
                   <div className="p-6 flex flex-col gap-3 flex-1">
                     <div>
@@ -366,14 +370,21 @@ export default function ShopClient() {
                     </div>
                     <p className="text-xs text-on-surface-variant leading-relaxed flex-1">{acc.description}</p>
                     <div className="flex items-center justify-between pt-2">
-                      <span className="font-montserrat text-xl font-bold text-tech-blue">{formatPrice(acc.price)}</span>
-                      <button
-                        onClick={() => handleAdd(acc.id)}
-                        className="px-5 py-2.5 bg-tech-blue text-white text-xs font-semibold rounded-full hover:bg-primary transition-colors flex items-center gap-1.5"
-                      >
-                        <Icon name="add" className="text-[16px]" />
-                        Dodaj
-                      </button>
+                      <span className={`font-montserrat text-xl font-bold ${acc.comingSoon ? "text-on-surface-variant/50" : "text-tech-blue"}`}>{formatPrice(acc.price)}</span>
+                      {acc.comingSoon ? (
+                        <span className="px-5 py-2.5 bg-surface-container text-on-surface-variant text-xs font-semibold rounded-full flex items-center gap-1.5 cursor-default">
+                          <Icon name="schedule" className="text-[16px]" />
+                          Wkrótce dostępne
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => handleAdd(acc.id)}
+                          className="px-5 py-2.5 bg-tech-blue text-white text-xs font-semibold rounded-full hover:bg-primary transition-colors flex items-center gap-1.5"
+                        >
+                          <Icon name="add" className="text-[16px]" />
+                          Dodaj
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

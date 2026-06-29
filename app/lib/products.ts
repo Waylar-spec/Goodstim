@@ -7,6 +7,7 @@ export type Product = {
   category: "device" | "accessory";
   description: string;
   badge?: string;
+  comingSoon?: boolean;
 };
 
 export const PRODUCTS: Product[] = [
@@ -28,6 +29,7 @@ export const PRODUCTS: Product[] = [
     image: "/product.png",
     category: "accessory",
     description: "Żel zoptymalizowany pod stymulację tVNS. Zapas na ok. 2 miesiące codziennego użytkowania.",
+    comingSoon: true,
   },
   {
     id: "gel-6pack",
@@ -38,6 +40,7 @@ export const PRODUCTS: Product[] = [
     category: "accessory",
     description: "Ekonomiczny zestaw na 6 miesięcy. Oszczędzasz 13 zł vs 3 x 2-pak.",
     badge: "Oszczędny",
+    comingSoon: true,
   },
   {
     id: "electrodes",
@@ -47,6 +50,7 @@ export const PRODUCTS: Product[] = [
     image: "/product.png",
     category: "accessory",
     description: "Wymienne elektrody ze stali nierdzewnej dedykowane do GoodStim VNS One.",
+    comingSoon: true,
   },
 ];
 
