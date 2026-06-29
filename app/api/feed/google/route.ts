@@ -29,7 +29,7 @@ const FEED_PRODUCTS = [
     mpn: "GS-GEL-2PK",
     googleCategory: "491",
     productType: "Urządzenia wellness > Akcesoria do stymulatorów",
-    availability: "in stock",
+    availability: "preorder",
     condition: "new",
   },
   {
@@ -43,7 +43,7 @@ const FEED_PRODUCTS = [
     mpn: "GS-GEL-6PK",
     googleCategory: "491",
     productType: "Urządzenia wellness > Akcesoria do stymulatorów",
-    availability: "in stock",
+    availability: "preorder",
     condition: "new",
   },
   {
@@ -57,7 +57,7 @@ const FEED_PRODUCTS = [
     mpn: "GS-ELEC-4PK",
     googleCategory: "491",
     productType: "Urządzenia wellness > Akcesoria do stymulatorów",
-    availability: "in stock",
+    availability: "preorder",
     condition: "new",
   },
 ];
