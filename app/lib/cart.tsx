@@ -9,7 +9,8 @@ type State = { items: CartItem[] };
 type Action =
   | { type: "ADD"; product: Product }
   | { type: "REMOVE"; id: string }
-  | { type: "SET_QTY"; id: string; qty: number };
+  | { type: "SET_QTY"; id: string; qty: number }
+  | { type: "CLEAR" };
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -34,6 +35,8 @@ function reducer(state: State, action: Action): State {
           i.product.id === action.id ? { ...i, qty: action.qty } : i
         ),
       };
+    case "CLEAR":
+      return { items: [] };
     default:
       return state;
   }
@@ -44,6 +47,7 @@ type CartCtx = {
   addToCart: (product: Product) => void;
   removeFromCart: (id: string) => void;
   setQty: (id: string, qty: number) => void;
+  clearCart: () => void;
   total: number;
   count: number;
   cartOpen: boolean;
@@ -74,13 +78,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const addToCart = (product: Product) => dispatch({ type: "ADD", product });
   const removeFromCart = (id: string) => dispatch({ type: "REMOVE", id });
   const setQty = (id: string, qty: number) => dispatch({ type: "SET_QTY", id, qty });
+  const clearCart = () => dispatch({ type: "CLEAR" });
   const openCart = () => setCartOpen(true);
   const closeCart = () => setCartOpen(false);
   const total = state.items.reduce((s, i) => s + i.product.price * i.qty, 0);
   const count = state.items.reduce((s, i) => s + i.qty, 0);
 
   return (
-    <CartContext.Provider value={{ items: state.items, addToCart, removeFromCart, setQty, total, count, cartOpen, openCart, closeCart }}>
+    <CartContext.Provider value={{ items: state.items, addToCart, removeFromCart, setQty, clearCart, total, count, cartOpen, openCart, closeCart }}>
       {children}
     </CartContext.Provider>
   );

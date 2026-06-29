@@ -43,7 +43,7 @@ export default function CheckoutPage() {
   const [couponState, setCouponState] = useState<"idle" | "loading" | "ok" | "error">("idle");
   const [couponLabel, setCouponLabel] = useState("");
   const [discountPct, setDiscountPct] = useState(0);
-  const { items, total, removeFromCart, setQty } = useCart();
+  const { items, total, removeFromCart, setQty, clearCart } = useCart();
 
   const discountAmount = Math.round(total * discountPct / 100 * 100) / 100;
   const totalAfterDiscount = Math.max(0, total - discountAmount);
@@ -111,6 +111,7 @@ export default function CheckoutPage() {
         body: JSON.stringify({ email }),
       });
     }
+    clearCart();
     setOrderState("ok");
   }
 
