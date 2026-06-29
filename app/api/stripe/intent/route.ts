@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     const intent = await stripe.paymentIntents.create({
       amount,
       currency: "pln",
-      payment_method_types: ["card", "blik"],
+      automatic_payment_methods: { enabled: true },
       ...(metadata ? { metadata } : {}),
     });
 

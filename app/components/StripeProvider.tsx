@@ -23,7 +23,6 @@ export default function StripeProvider({ children, amount }: Props) {
         mode: "payment",
         amount,
         currency: "pln",
-        paymentMethodTypes: ["card", "blik"],
         appearance: {
           theme: "stripe",
           variables: {

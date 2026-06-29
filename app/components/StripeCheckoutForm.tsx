@@ -1,13 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   PaymentElement,
-  PaymentRequestButtonElement,
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
-import type { PaymentRequest, CanMakePaymentResult } from "@stripe/stripe-js";
 import Icon from "./Icon";
 
 interface Props {
@@ -24,47 +22,6 @@ export default function StripeCheckoutForm({ totalGrosze, email, firstName, meta
   const elements = useElements();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [paymentRequest, setPaymentRequest] = useState<PaymentRequest | null>(null);
-  const [prAvailable, setPrAvailable] = useState<CanMakePaymentResult | null>(null);
-
-  useEffect(() => {
-    if (!stripe || !totalGrosze) return;
-    const pr = stripe.paymentRequest({
-      country: "PL",
-      currency: "pln",
-      total: { label: "GoodStim VNS One", amount: totalGrosze },
-      requestPayerName: true,
-      requestPayerEmail: true,
-    });
-    pr.canMakePayment().then((result) => {
-      if (result && (result.applePay || result.googlePay)) {
-        setPaymentRequest(pr);
-        setPrAvailable(result);
-      }
-    });
-    pr.on("paymentmethod", async (e) => {
-      if (onBeforeSubmit && !onBeforeSubmit()) { e.complete("fail"); return; }
-      const res = await fetch("/api/stripe/intent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: totalGrosze, metadata }),
-      });
-      const { clientSecret, error: fetchErr } = await res.json();
-      if (fetchErr || !clientSecret) { e.complete("fail"); return; }
-      const { error: confirmErr } = await stripe.confirmCardPayment(
-        clientSecret,
-        { payment_method: e.paymentMethod.id },
-        { handleActions: false }
-      );
-      if (confirmErr) {
-        e.complete("fail");
-        setError(confirmErr.message ?? "Błąd płatności");
-      } else {
-        e.complete("success");
-        onSuccess();
-      }
-    });
-  }, [stripe, totalGrosze]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -112,36 +69,12 @@ export default function StripeCheckoutForm({ totalGrosze, email, firstName, meta
 
   return (
     <div className="space-y-4">
-      {paymentRequest && prAvailable && (
-        <div className="space-y-3">
-          <PaymentRequestButtonElement
-            options={{
-              paymentRequest,
-              style: {
-                paymentRequestButton: {
-                  type: "buy",
-                  theme: "dark",
-                  height: "52px",
-                },
-              },
-            }}
-          />
-          <div className="flex items-center gap-3">
-            <hr className="flex-1 border-outline-variant/30" />
-            <span className="text-xs text-on-surface-variant font-semibold">
-              {prAvailable.applePay ? "lub zapłać kartą / BLIK" : "lub zapłać inną metodą"}
-            </span>
-            <hr className="flex-1 border-outline-variant/30" />
-          </div>
-        </div>
-      )}
-
       <form onSubmit={handleSubmit} className="space-y-4">
         <PaymentElement
           options={{
             layout: "tabs",
             fields: { billingDetails: { name: "never", email: "never" } },
-            wallets: { applePay: "never", googlePay: "never" },
+            wallets: { applePay: "auto", googlePay: "auto" },
             terms: { card: "never" },
           }}
         />
