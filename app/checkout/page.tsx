@@ -36,6 +36,7 @@ export default function CheckoutPage() {
   const [newsletterAccepted, setNewsletterAccepted] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [orderState, setOrderState] = useState<"idle" | "ok">("idle");
+  const [step, setStep] = useState(1);
   const [wantInvoice, setWantInvoice] = useState(false);
   const [companyName, setCompanyName] = useState("");
   const [nip, setNip] = useState("");
@@ -97,6 +98,43 @@ export default function CheckoutPage() {
     setFormError(null);
     return true;
   }
+
+  function validateStep(s: number): string | null {
+    if (s === 1) {
+      if (!firstName.trim() || !lastName.trim()) return "Podaj imię i nazwisko.";
+      if (!email.trim()) return "Podaj adres e-mail.";
+    }
+    if (s === 2) {
+      if (delivery === "courier" && (!address.trim() || !city.trim() || !postalCode.trim()))
+        return "Uzupełnij pełny adres dostawy.";
+      if (delivery === "inpost" && !selectedLocker) return "Wybierz paczkomat z mapy.";
+      if (delivery === "inpost" && !phone.trim())
+        return "Podaj numer telefonu — InPost wyśle na niego kod do odbioru.";
+      if (wantInvoice && !companyName.trim()) return "Podaj nazwę firmy do faktury.";
+      if (wantInvoice && !nip.trim()) return "Podaj NIP do faktury.";
+    }
+    return null;
+  }
+
+  function goNext() {
+    const err = validateStep(step);
+    if (err) { setFormError(err); return; }
+    setFormError(null);
+    setStep((s) => Math.min(3, s + 1));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function goBack() {
+    setFormError(null);
+    setStep((s) => Math.max(1, s - 1));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  const STEP_LABELS = [
+    { n: 1, label: "Dane kontaktowe" },
+    { n: 2, label: "Dostawa" },
+    { n: 3, label: "Płatność" },
+  ];
 
   async function sendConfirmation() {
     trackPurchase(
@@ -186,6 +224,29 @@ export default function CheckoutPage() {
                 Sfinalizuj zamówienie
               </h1>
 
+              {/* Stepper */}
+              <div className="flex items-center gap-2 mb-10">
+                {STEP_LABELS.map((s, i) => (
+                  <div key={s.n} className={`flex items-center gap-2 ${i < 2 ? "flex-1" : ""}`}>
+                    <button
+                      type="button"
+                      onClick={() => { if (s.n < step) { setFormError(null); setStep(s.n); } }}
+                      disabled={s.n > step}
+                      className={`flex items-center gap-2 ${s.n < step ? "cursor-pointer" : "cursor-default"}`}
+                    >
+                      <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
+                        step > s.n ? "bg-vibrant-teal text-tech-blue" : step === s.n ? "bg-tech-blue text-white" : "bg-surface-container text-on-surface-variant"
+                      }`}>
+                        {step > s.n ? "✓" : s.n}
+                      </span>
+                      <span className={`text-sm font-semibold hidden sm:inline ${step === s.n ? "text-primary" : "text-on-surface-variant"}`}>{s.label}</span>
+                    </button>
+                    {i < 2 && <div className={`flex-1 h-0.5 rounded-full ${step > s.n ? "bg-vibrant-teal" : "bg-outline-variant/30"}`} />}
+                  </div>
+                ))}
+              </div>
+
+              {step === 1 && (<>
               {/* 1. Dane osobowe */}
               <section className="mb-12">
                 <div className="flex items-center gap-3 mb-6">
@@ -222,6 +283,22 @@ export default function CheckoutPage() {
                 </div>
               </section>
 
+              {formError && (
+                <div className="flex items-start gap-2 p-4 mb-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+                  <Icon name="error_outline" className="text-[18px] flex-shrink-0 mt-0.5" />
+                  {formError}
+                </div>
+              )}
+              <div className="flex justify-end mb-8">
+                <button type="button" onClick={goNext}
+                  className="px-8 py-4 bg-tech-blue text-white rounded-xl font-semibold text-sm hover:bg-primary transition-all flex items-center gap-2 btn-press">
+                  Dalej: Dostawa
+                  <Icon name="arrow_forward" className="text-[18px]" />
+                </button>
+              </div>
+              </>)}
+
+              {step === 2 && (<>
               {/* 2. Metoda dostawy */}
               <section className="mb-12">
                 <div className="flex items-center gap-3 mb-6">
@@ -309,6 +386,32 @@ export default function CheckoutPage() {
                 )}
               </section>
 
+              {formError && (
+                <div className="flex items-start gap-2 p-4 mb-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+                  <Icon name="error_outline" className="text-[18px] flex-shrink-0 mt-0.5" />
+                  {formError}
+                </div>
+              )}
+              <div className="flex justify-between mb-8">
+                <button type="button" onClick={goBack}
+                  className="px-6 py-4 text-on-surface-variant hover:text-primary font-semibold text-sm flex items-center gap-2 transition-colors">
+                  <Icon name="arrow_back" className="text-[18px]" />
+                  Wstecz
+                </button>
+                <button type="button" onClick={goNext}
+                  className="px-8 py-4 bg-tech-blue text-white rounded-xl font-semibold text-sm hover:bg-primary transition-all flex items-center gap-2 btn-press">
+                  Dalej: Płatność
+                  <Icon name="arrow_forward" className="text-[18px]" />
+                </button>
+              </div>
+              </>)}
+
+              {step === 3 && (<>
+              <button type="button" onClick={goBack}
+                className="mb-6 text-sm text-on-surface-variant hover:text-primary font-semibold flex items-center gap-1.5 transition-colors">
+                <Icon name="arrow_back" className="text-[18px]" />
+                Wstecz do dostawy
+              </button>
               {/* 3. Płatność */}
               <section className="mb-8">
                 <div className="flex items-center gap-3 mb-6">
@@ -390,6 +493,7 @@ export default function CheckoutPage() {
                   </div>
                 ))}
               </div>
+              </>)}
             </div>
 
             {/* Prawa strona: podsumowanie */}
