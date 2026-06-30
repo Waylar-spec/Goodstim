@@ -1,6 +1,7 @@
 import Stripe from "stripe";
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "../../../lib/db";
+import { createAndSendInvoice } from "../../../lib/fakturownia";
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -114,10 +115,12 @@ export async function POST(req: NextRequest) {
     const items = meta.items_json ? JSON.parse(meta.items_json) : [];
     const totalPln = intent.amount / 100;
 
-    // Zapisz zamówienie do bazy
+    // Zapisz zamówienie do bazy. RETURNING + ON CONFLICT = idempotencja:
+    // przy ponowieniu webhooka przez Stripe nie zdublujemy maili ani faktury.
+    let isNewOrder = false;
     try {
       const sql = getDb();
-      await sql`
+      const inserted = await sql`
         INSERT INTO orders (
           order_number, stripe_payment_intent_id, status,
           customer_name, customer_email, customer_phone,
@@ -142,12 +145,31 @@ export async function POST(req: NextRequest) {
           ${totalPln}
         )
         ON CONFLICT (stripe_payment_intent_id) DO NOTHING
+        RETURNING id
       `;
+      isNewOrder = inserted.length > 0;
     } catch (dbErr) {
       console.error("DB insert error:", dbErr);
+      // Realny błąd bazy → 500, Stripe ponowi webhook później.
+      return NextResponse.json({ error: "DB error" }, { status: 500 });
+    }
+
+    // Zamówienie już przetworzone (powtórka webhooka) — nie dubluj efektów ubocznych.
+    if (!isNewOrder) {
+      return NextResponse.json({ received: true, duplicate: true });
     }
 
     const base = process.env.NEXT_PUBLIC_BASE_URL ?? "";
+
+    // Faktura / rachunek w Fakturowni + automatyczna wysyłka do klienta
+    await createAndSendInvoice({
+      orderNumber,
+      buyerName: meta.want_invoice === "1" ? (meta.company_name || meta.customer_name || "") : (meta.customer_name ?? ""),
+      buyerEmail: meta.customer_email ?? "",
+      buyerTaxNo: meta.want_invoice === "1" ? (meta.nip || undefined) : undefined,
+      items: items.map((i: { name: string; qty: number; price: number }) => ({ name: i.name, qty: i.qty, price: i.price })),
+      total: totalPln,
+    });
 
     // Email potwierdzenia do klienta
     if (meta.customer_email) {
