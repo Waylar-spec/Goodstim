@@ -9,6 +9,7 @@ import BeforeAfterSection from "./BeforeAfterSection";
 import CertsSection from "./CertsSection";
 import FaqSection from "./FaqSection";
 import { useState } from "react";
+import { REVIEWS, AGGREGATE_RATING } from "../lib/reviews";
 
 const BENEFITS = [
   { icon: "energy_savings_leaf", title: "Redukcja stresu", desc: "Obniża poziom kortyzolu i natychmiastowo aktywuje układ przywspółczulny, wyciszając reakcję walki lub ucieczki." },
@@ -60,11 +61,11 @@ export default function HomeClient() {
                 <span className="w-2 h-2 rounded-full bg-vibrant-teal pulse-teal flex-shrink-0" />
                 Stymulator Nerwu Błędnego · Technologia VNS
               </div>
-              <h1 className="font-montserrat text-[clamp(36px,5vw,48px)] leading-[1.16] font-bold tracking-[-0.02em] text-primary max-w-xl">
-                Przejmij kontrolę nad swoim spokojem
+              <h1 className="font-montserrat text-[clamp(34px,5vw,48px)] leading-[1.14] font-bold tracking-[-0.02em] text-primary max-w-xl">
+                Stymulator nerwu błędnego, który przywraca Twój spokój
               </h1>
               <p className="text-lg leading-7 text-on-surface-variant max-w-lg">
-                GoodStim to zaawansowany stymulator nerwu błędnego, który przywraca równowagę układowi nerwowemu w zaledwie 15 minut dziennie.
+                GoodStim to zaawansowany stymulator nerwu błędnego (tVNS), który przywraca równowagę układowi nerwowemu w zaledwie 15 minut dziennie — mniej stresu, lepszy sen, wyższe HRV.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <a href="/shop" className="px-8 py-4 bg-tech-blue text-white text-sm font-semibold tracking-wide rounded-lg hover:scale-[1.02] transition-all text-center btn-press">
@@ -163,23 +164,51 @@ export default function HomeClient() {
           </div>
         </section>
 
-        {/* SOCIAL PROOF */}
+        {/* OPINIE / REVIEWS */}
         <section id="reviews" className="py-24 bg-tech-blue text-white">
-          <div className="max-w-[1280px] mx-auto px-6 md:px-16">
-            <div className="flex flex-wrap justify-center gap-12 md:gap-24 opacity-60 mb-20">
-              {["WIRED", "HEALTHLINE", "FORBES", "TECHCRUNCH"].map((b) => (
-                <span key={b} className="font-bold text-xl tracking-widest">{b}</span>
+          <div className="max-w-[1280px] mx-auto px-6 md:px-16 space-y-16">
+            {/* Header + ocena agregowana */}
+            <div className="text-center space-y-6">
+              <h2 className="font-montserrat text-[clamp(28px,4vw,40px)] leading-[1.15] font-bold tracking-[-0.01em]">
+                Opinie o stymulatorze nerwu błędnego
+              </h2>
+              <div className="flex items-center justify-center gap-4">
+                <span className="font-montserrat text-5xl font-bold text-vibrant-teal">
+                  {AGGREGATE_RATING.score.toFixed(1).replace(".", ",")}
+                </span>
+                <div className="text-left">
+                  <div className="text-vibrant-teal text-2xl leading-none tracking-widest">★★★★★</div>
+                  <p className="text-white/70 text-sm mt-1">na podstawie {AGGREGATE_RATING.count} opinii użytkowników</p>
+                </div>
+              </div>
+              <p className="text-white/70 max-w-2xl mx-auto leading-7">
+                Zobacz, co użytkownicy mówią o stymulatorze nerwu błędnego GoodStim — od łatwiejszego zasypiania po większy spokój i wyższe HRV w codziennym życiu.
+              </p>
+            </div>
+
+            {/* Karty opinii */}
+            <div className="grid md:grid-cols-3 gap-6">
+              {REVIEWS.slice(0, 3).map((r) => (
+                <div key={r.name} className="bg-white/5 border border-white/10 rounded-3xl p-8 space-y-4 backdrop-blur-sm">
+                  <div className="text-vibrant-teal text-lg tracking-widest leading-none">★★★★★</div>
+                  <p className="text-white/90 leading-relaxed text-[15px]">„{r.text}&rdquo;</p>
+                  <div className="flex items-center gap-3 pt-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={r.avatar} alt={r.name} className="w-11 h-11 rounded-full object-cover flex-shrink-0" />
+                    <div>
+                      <p className="font-semibold text-sm">{r.name}</p>
+                      <p className="text-white/50 text-xs">{r.location} · {r.date}</p>
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
-            <div className="max-w-4xl mx-auto text-center space-y-8">
-              <Icon name="format_quote" className="text-vibrant-teal text-5xl" fill />
-              <p className="font-montserrat text-[32px] leading-[40px] font-semibold tracking-[-0.01em] italic">
-                &ldquo;GoodStim całkowicie odmienił moje podejście do zarządzania stresem. Jako CEO, często czułem się wypalony. Dzięki 15-minutowym sesjom wieczornym, mój sen jest głębszy, a poranki pełne energii.&rdquo;
-              </p>
-              <div className="pt-6">
-                <div className="font-bold text-xl">Marek Wiśniewski</div>
-                <div className="text-vibrant-teal text-sm font-semibold tracking-wide">Zweryfikowany klient · Biohacker</div>
-              </div>
+
+            <div className="text-center">
+              <a href="/shop#reviews" className="inline-flex items-center gap-2 px-8 py-4 bg-vibrant-teal text-tech-blue font-bold rounded-full hover:scale-[1.02] transition-all text-sm">
+                Zobacz wszystkie opinie
+                <Icon name="arrow_forward" className="text-[18px]" />
+              </a>
             </div>
           </div>
         </section>
