@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "../../../lib/db";
-import { genAffiliateCode } from "../../../lib/affiliate";
+import { genAffiliateCode, genAffiliateCodeWithSuffix, sanitizeAffiliateCode } from "../../../lib/affiliate";
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: NextRequest) {
-  const { name, email } = await req.json();
+  const { name, email, code: customCode } = await req.json();
 
   if (!name?.trim() || !email?.trim()) {
     return NextResponse.json({ error: "Podaj imię i email" }, { status: 400 });
@@ -18,12 +18,25 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Ten email jest już zarejestrowany w programie" }, { status: 409 });
   }
 
-  let code = genAffiliateCode(name);
-  // Unikalność kodu — dolosuj ponownie w razie kolizji
-  for (let i = 0; i < 5; i++) {
+  let code: string;
+
+  if (customCode?.trim()) {
+    code = sanitizeAffiliateCode(customCode);
+    if (code.length < 3) {
+      return NextResponse.json({ error: "Kod musi mieć min. 3 znaki (litery/cyfry)" }, { status: 400 });
+    }
     const clash = await sql`SELECT id FROM affiliates WHERE code = ${code}`;
-    if (clash.length === 0) break;
+    if (clash.length > 0) {
+      return NextResponse.json({ error: "Ten kod jest już zajęty, wybierz inny" }, { status: 409 });
+    }
+  } else {
     code = genAffiliateCode(name);
+    // Unikalność kodu — dolosuj wariant z cyframi w razie kolizji z imienia
+    for (let i = 0; i < 5; i++) {
+      const clash = await sql`SELECT id FROM affiliates WHERE code = ${code}`;
+      if (clash.length === 0) break;
+      code = genAffiliateCodeWithSuffix(name);
+    }
   }
 
   const token = crypto.randomUUID();

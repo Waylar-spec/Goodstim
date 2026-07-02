@@ -8,6 +8,7 @@ import { TIERS } from "../lib/affiliate";
 export default function AffiliatePage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
   const [state, setState] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [error, setError] = useState("");
 
@@ -20,7 +21,7 @@ export default function AffiliatePage() {
       const res = await fetch("/api/affiliate/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email }),
+        body: JSON.stringify({ name, email, code }),
       });
 
       if (res.ok) {
@@ -99,6 +100,18 @@ export default function AffiliatePage() {
                     required
                     className="w-full bg-slate-700 border border-slate-600 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-teal-500"
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Twój kod (opcjonalnie)</label>
+                  <input
+                    type="text"
+                    value={code}
+                    onChange={e => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))}
+                    placeholder="np. TWOJEIMIE"
+                    maxLength={20}
+                    className="w-full bg-slate-700 border border-slate-600 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-teal-500 tracking-widest"
+                  />
+                  <p className="text-xs text-slate-500 mt-1.5">Zostaw puste, a wygenerujemy kod z Twojego imienia. Ten kod będą podawać ludzie w koszyku.</p>
                 </div>
                 {error && <p className="text-red-400 text-sm text-center">{error}</p>}
                 <button

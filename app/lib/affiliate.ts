@@ -25,11 +25,25 @@ export function getNextTier(totalUnits: number): Tier | null {
   return TIERS[idx + 1] ?? null;
 }
 
+// Kod bazowy z imienia i nazwiska, bez losowych cyfr \u2014 ma by\u0107 \u0142atwy do podania ustnie/w social media.
 export function genAffiliateCode(name: string): string {
   const base = name
     .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
     .toUpperCase().replace(/[^A-Z]/g, "")
-    .slice(0, 8) || "GOODSTIM";
-  const suffix = Math.floor(100 + Math.random() * 900);
+    .slice(0, 15);
+  return base || "PARTNER";
+}
+
+// U\u017cywane tylko gdy bazowy kod jest ju\u017c zaj\u0119ty \u2014 dorzuca 2 cyfry, \u017ceby da\u0142o si\u0119 szybko dobra\u0107 wolny wariant.
+export function genAffiliateCodeWithSuffix(name: string): string {
+  const base = genAffiliateCode(name).slice(0, 12);
+  const suffix = Math.floor(10 + Math.random() * 90);
   return `${base}${suffix}`;
+}
+
+export function sanitizeAffiliateCode(raw: string): string {
+  return raw
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase().replace(/[^A-Z0-9]/g, "")
+    .slice(0, 20);
 }
