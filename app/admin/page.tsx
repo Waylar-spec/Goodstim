@@ -107,10 +107,17 @@ export default function AdminPage() {
   const [page, setPage] = useState(1);
   const [notesDraft, setNotesDraft] = useState("");
   const [notesSaving, setNotesSaving] = useState(false);
-  const [activeMainTab, setActiveMainTab] = useState<"orders" | "analytics">("orders");
+  const [activeMainTab, setActiveMainTab] = useState<"orders" | "analytics" | "reviews">("orders");
   const [period, setPeriod] = useState<"7d" | "30d" | "90d" | "custom">("30d");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
+
+  const [dbReviews, setDbReviews] = useState<{
+    id: number; order_number: string; customer_name: string;
+    reviewer_name: string; rating: number; review_text: string;
+    status: string; submitted_at: string;
+  }[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
 
   async function load() {
     const res = await fetch("/api/admin/orders");
@@ -120,7 +127,30 @@ export default function AdminPage() {
     setLoading(false);
   }
 
+  async function loadReviews() {
+    setReviewsLoading(true);
+    const res = await fetch("/api/admin/reviews");
+    if (res.ok) {
+      const data = await res.json();
+      setDbReviews(data.reviews ?? []);
+    }
+    setReviewsLoading(false);
+  }
+
+  async function moderateReview(id: number, status: "approved" | "rejected") {
+    await fetch("/api/admin/reviews", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, status }),
+    });
+    setDbReviews(r => r.map(x => x.id === id ? { ...x, status } : x));
+  }
+
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    if (activeMainTab === "reviews") loadReviews();
+  }, [activeMainTab]);
 
   async function setStatus(id: number, status: string) {
     await fetch("/api/admin/orders", {
@@ -305,13 +335,13 @@ export default function AdminPage() {
           <span className="text-xs bg-blue-600 px-2 py-0.5 rounded-full">Admin</span>
           {/* Main tabs */}
           <div className="flex gap-1 ml-4">
-            {(["orders", "analytics"] as const).map(t => (
+            {(["orders", "analytics", "reviews"] as const).map(t => (
               <button
                 key={t}
                 onClick={() => setActiveMainTab(t)}
                 className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors ${activeMainTab === t ? "bg-white/10 text-white" : "text-gray-400 hover:text-white"}`}
               >
-                {t === "orders" ? "Zamówienia" : "Analityka"}
+                {t === "orders" ? "Zamówienia" : t === "analytics" ? "Analityka" : `Opinie${dbReviews.filter(r => r.status === "pending_approval").length > 0 ? ` (${dbReviews.filter(r => r.status === "pending_approval").length})` : ""}`}
               </button>
             ))}
           </div>
@@ -741,6 +771,96 @@ export default function AdminPage() {
                 })}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* ─── REVIEWS TAB ─── */}
+        {activeMainTab === "reviews" && (
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-bold text-white">Opinie klientów</h2>
+              <button onClick={loadReviews} className="text-xs text-gray-400 hover:text-white border border-white/10 px-3 py-1.5 rounded-lg transition-colors">
+                ↻ Odśwież
+              </button>
+            </div>
+
+            {reviewsLoading ? (
+              <p className="text-gray-500 text-sm">Ładowanie...</p>
+            ) : dbReviews.length === 0 ? (
+              <div className="bg-[#111827] border border-white/10 rounded-2xl p-12 text-center">
+                <p className="text-4xl mb-3">⭐</p>
+                <p className="text-gray-400 text-sm">Brak opinii do moderacji.<br/>Prośby o opinie wysyłane są automatycznie 10 dni po zakupie.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Pending first */}
+                {["pending_approval", "approved", "rejected"].map(statusGroup => {
+                  const group = dbReviews.filter(r => r.status === statusGroup);
+                  if (group.length === 0) return null;
+                  const groupLabels: Record<string, string> = {
+                    pending_approval: "⏳ Oczekujące na zatwierdzenie",
+                    approved: "✅ Zatwierdzone",
+                    rejected: "❌ Odrzucone",
+                  };
+                  return (
+                    <div key={statusGroup}>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">{groupLabels[statusGroup]}</p>
+                      <div className="space-y-3">
+                        {group.map(r => (
+                          <div key={r.id} className="bg-[#111827] border border-white/10 rounded-2xl p-5">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-3 mb-1">
+                                  <span className="font-semibold text-white text-sm">{r.reviewer_name || r.customer_name}</span>
+                                  <span className="text-yellow-400 text-sm">{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</span>
+                                  <span className="text-xs text-gray-500">zam. #{r.order_number}</span>
+                                </div>
+                                <p className="text-gray-300 text-sm leading-relaxed">{r.review_text}</p>
+                                {r.submitted_at && (
+                                  <p className="text-xs text-gray-600 mt-2">{new Date(r.submitted_at).toLocaleString("pl-PL")}</p>
+                                )}
+                              </div>
+                              {statusGroup === "pending_approval" && (
+                                <div className="flex gap-2 shrink-0">
+                                  <button
+                                    onClick={() => moderateReview(r.id, "approved")}
+                                    className="px-3 py-1.5 bg-green-600/20 hover:bg-green-600/40 text-green-400 text-xs font-semibold rounded-lg transition-colors border border-green-600/30"
+                                  >
+                                    ✓ Zatwierdź
+                                  </button>
+                                  <button
+                                    onClick={() => moderateReview(r.id, "rejected")}
+                                    className="px-3 py-1.5 bg-red-600/20 hover:bg-red-600/40 text-red-400 text-xs font-semibold rounded-lg transition-colors border border-red-600/30"
+                                  >
+                                    ✕ Odrzuć
+                                  </button>
+                                </div>
+                              )}
+                              {statusGroup === "approved" && (
+                                <button
+                                  onClick={() => moderateReview(r.id, "rejected")}
+                                  className="px-3 py-1.5 bg-red-600/20 hover:bg-red-600/40 text-red-400 text-xs font-semibold rounded-lg transition-colors border border-red-600/30 shrink-0"
+                                >
+                                  Cofnij
+                                </button>
+                              )}
+                              {statusGroup === "rejected" && (
+                                <button
+                                  onClick={() => moderateReview(r.id, "approved")}
+                                  className="px-3 py-1.5 bg-green-600/20 hover:bg-green-600/40 text-green-400 text-xs font-semibold rounded-lg transition-colors border border-green-600/30 shrink-0"
+                                >
+                                  Przywróć
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
       </div>

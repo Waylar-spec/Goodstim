@@ -57,4 +57,22 @@ export async function initDb() {
   await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS company_name TEXT`;
   await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS nip TEXT`;
   await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS invoice_type TEXT NOT NULL DEFAULT 'receipt'`;
+  await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS review_requested_at TIMESTAMPTZ`;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS reviews (
+      id SERIAL PRIMARY KEY,
+      token TEXT UNIQUE NOT NULL,
+      order_id INTEGER REFERENCES orders(id),
+      order_number TEXT,
+      customer_name TEXT,
+      customer_email TEXT,
+      reviewer_name TEXT,
+      rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+      review_text TEXT,
+      status TEXT NOT NULL DEFAULT 'pending_submission',
+      submitted_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
 }
