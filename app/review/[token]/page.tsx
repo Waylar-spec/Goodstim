@@ -37,17 +37,22 @@ export default function ReviewPage() {
     setError("");
     setSubmitting(true);
 
-    const res = await fetch("/api/review/submit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token, reviewerName: name, rating, reviewText: text }),
-    });
+    try {
+      const res = await fetch("/api/review/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, reviewerName: name, rating, reviewText: text }),
+      });
 
-    if (res.ok) {
-      setState("done");
-    } else {
-      const data = await res.json();
-      setError(data.error ?? "Coś poszło nie tak");
+      if (res.ok) {
+        setState("done");
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error ?? "Coś poszło nie tak");
+        setSubmitting(false);
+      }
+    } catch {
+      setError("Coś poszło nie tak. Spróbuj ponownie.");
       setSubmitting(false);
     }
   }

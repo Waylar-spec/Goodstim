@@ -2,6 +2,7 @@ import Stripe from "stripe";
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "../../../lib/db";
 import { createAndSendInvoice } from "../../../lib/fakturownia";
+import { getTier } from "../../../lib/affiliate";
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -127,7 +128,7 @@ export async function POST(req: NextRequest) {
           address_line1, city, postal_code,
           delivery_method, inpost_locker,
           company_name, nip, invoice_type,
-          items, total_pln
+          items, total_pln, affiliate_code
         ) VALUES (
           ${orderNumber}, ${intent.id}, 'new',
           ${meta.customer_name ?? ""},
@@ -142,7 +143,8 @@ export async function POST(req: NextRequest) {
           ${meta.nip ?? ""},
           ${meta.want_invoice === "1" ? "invoice" : "receipt"},
           ${JSON.stringify(items)},
-          ${totalPln}
+          ${totalPln},
+          ${meta.affiliate_code || null}
         )
         ON CONFLICT (stripe_payment_intent_id) DO NOTHING
         RETURNING id
@@ -160,6 +162,32 @@ export async function POST(req: NextRequest) {
     }
 
     const base = process.env.NEXT_PUBLIC_BASE_URL ?? "";
+
+    // Prowizja afiliacyjna — poziom liczony ze skumulowanej sprzedaży PRZED tym zamówieniem (tylko w górę)
+    if (meta.affiliate_code) {
+      try {
+        const sql = getDb();
+        const affRows = await sql`SELECT id, total_units_sold FROM affiliates WHERE code = ${meta.affiliate_code} AND status = 'active'`;
+        if (affRows.length > 0) {
+          const unitsBefore = affRows[0].total_units_sold as number;
+          const unitsThisOrder = items.reduce((s: number, i: { qty: number }) => s + i.qty, 0);
+          const tier = getTier(unitsBefore);
+          const commission = Math.round(totalPln * tier.rate * 100) / 100;
+
+          await sql`
+            UPDATE orders
+            SET affiliate_commission_pln = ${commission}, affiliate_tier = ${tier.name}
+            WHERE order_number = ${orderNumber}
+          `;
+          await sql`
+            UPDATE affiliates SET total_units_sold = total_units_sold + ${unitsThisOrder}
+            WHERE id = ${affRows[0].id}
+          `;
+        }
+      } catch (affErr) {
+        console.error("Affiliate commission error:", affErr);
+      }
+    }
 
     // Faktura / rachunek w Fakturowni + automatyczna wysyłka do klienta
     await createAndSendInvoice({

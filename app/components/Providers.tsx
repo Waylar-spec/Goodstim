@@ -1,17 +1,21 @@
 "use client";
 
 import { CartProvider } from "../lib/cart";
-import { ReactNode } from "react";
+import { ReactNode, Suspense } from "react";
 import { Toaster } from "react-hot-toast";
 import SmoothScroll from "./SmoothScroll";
 import CookieBanner from "./CookieBanner";
 import ExitIntentPopup from "./ExitIntentPopup";
 import SocialProof from "./SocialProof";
+import AffiliateTracker from "./AffiliateTracker";
 
 export default function Providers({ children }: { children: ReactNode }) {
   return (
     <CartProvider>
       <SmoothScroll>
+        <Suspense fallback={null}>
+          <AffiliateTracker />
+        </Suspense>
         {children}
         <Toaster
           position="top-center"

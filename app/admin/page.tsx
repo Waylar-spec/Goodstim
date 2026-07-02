@@ -107,7 +107,7 @@ export default function AdminPage() {
   const [page, setPage] = useState(1);
   const [notesDraft, setNotesDraft] = useState("");
   const [notesSaving, setNotesSaving] = useState(false);
-  const [activeMainTab, setActiveMainTab] = useState<"orders" | "analytics" | "reviews">("orders");
+  const [activeMainTab, setActiveMainTab] = useState<"orders" | "analytics" | "reviews" | "affiliates">("orders");
   const [period, setPeriod] = useState<"7d" | "30d" | "90d" | "custom">("30d");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
@@ -146,10 +146,38 @@ export default function AdminPage() {
     setDbReviews(r => r.map(x => x.id === id ? { ...x, status } : x));
   }
 
+  type Affiliate = {
+    id: number; code: string; name: string; email: string; bank_account: string | null;
+    total_units_sold: number; tier: string; salesCount: number; totalEarned: number; pending: number;
+  };
+  const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
+  const [affiliatesLoading, setAffiliatesLoading] = useState(false);
+
+  async function loadAffiliates() {
+    setAffiliatesLoading(true);
+    const res = await fetch("/api/admin/affiliates");
+    if (res.ok) {
+      const data = await res.json();
+      setAffiliates(data.affiliates ?? []);
+    }
+    setAffiliatesLoading(false);
+  }
+
+  async function markAffiliatePaid(code: string) {
+    if (!confirm(`Oznaczyć wszystkie oczekujące prowizje afilianta ${code} jako wypłacone?`)) return;
+    await fetch("/api/admin/affiliates", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code, action: "mark_paid" }),
+    });
+    loadAffiliates();
+  }
+
   useEffect(() => { load(); }, []);
 
   useEffect(() => {
     if (activeMainTab === "reviews") loadReviews();
+    if (activeMainTab === "affiliates") loadAffiliates();
   }, [activeMainTab]);
 
   async function setStatus(id: number, status: string) {
@@ -335,13 +363,13 @@ export default function AdminPage() {
           <span className="text-xs bg-blue-600 px-2 py-0.5 rounded-full">Admin</span>
           {/* Main tabs */}
           <div className="flex gap-1 ml-4">
-            {(["orders", "analytics", "reviews"] as const).map(t => (
+            {(["orders", "analytics", "reviews", "affiliates"] as const).map(t => (
               <button
                 key={t}
                 onClick={() => setActiveMainTab(t)}
                 className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors ${activeMainTab === t ? "bg-white/10 text-white" : "text-gray-400 hover:text-white"}`}
               >
-                {t === "orders" ? "Zamówienia" : t === "analytics" ? "Analityka" : `Opinie${dbReviews.filter(r => r.status === "pending_approval").length > 0 ? ` (${dbReviews.filter(r => r.status === "pending_approval").length})` : ""}`}
+                {t === "orders" ? "Zamówienia" : t === "analytics" ? "Analityka" : t === "reviews" ? `Opinie${dbReviews.filter(r => r.status === "pending_approval").length > 0 ? ` (${dbReviews.filter(r => r.status === "pending_approval").length})` : ""}` : "Afiliacja"}
               </button>
             ))}
           </div>
@@ -859,6 +887,61 @@ export default function AdminPage() {
                     </div>
                   );
                 })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ─── AFFILIATES TAB ─── */}
+        {activeMainTab === "affiliates" && (
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-bold text-white">Program afiliacyjny</h2>
+              <button onClick={loadAffiliates} className="text-xs text-gray-400 hover:text-white border border-white/10 px-3 py-1.5 rounded-lg transition-colors">
+                ↻ Odśwież
+              </button>
+            </div>
+
+            {affiliatesLoading ? (
+              <p className="text-gray-500 text-sm">Ładowanie...</p>
+            ) : affiliates.length === 0 ? (
+              <div className="bg-[#111827] border border-white/10 rounded-2xl p-12 text-center">
+                <p className="text-4xl mb-3">🤝</p>
+                <p className="text-gray-400 text-sm">Brak zarejestrowanych afiliantów.<br/>Rejestracja: goodstim.pl/affiliate</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {affiliates.map(a => (
+                  <div key={a.id} className="bg-[#111827] border border-white/10 rounded-2xl p-5">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 mb-1">
+                          <span className="font-semibold text-white text-sm">{a.name}</span>
+                          <span className="text-xs font-mono bg-white/10 px-2 py-0.5 rounded text-gray-300">{a.code}</span>
+                          <span className="text-xs bg-teal-500/20 text-teal-400 px-2 py-0.5 rounded-full font-semibold">{a.tier}</span>
+                        </div>
+                        <p className="text-xs text-gray-500">{a.email}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {a.total_units_sold} szt. sprzedanych · {a.salesCount} zamówień
+                          {a.bank_account && <> · konto: <span className="font-mono">{a.bank_account}</span></>}
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-xs text-gray-500">Do wypłaty</p>
+                        <p className="text-lg font-bold text-teal-400">{a.pending.toFixed(2)} zł</p>
+                        <p className="text-xs text-gray-600">łącznie: {a.totalEarned.toFixed(2)} zł</p>
+                        {a.pending > 0 && (
+                          <button
+                            onClick={() => markAffiliatePaid(a.code)}
+                            className="mt-2 px-3 py-1 bg-green-600/20 hover:bg-green-600/40 text-green-400 text-xs font-semibold rounded-lg transition-colors border border-green-600/30"
+                          >
+                            Oznacz jako wypłacone
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>

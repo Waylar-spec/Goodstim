@@ -21,6 +21,12 @@ function genOrderNumber() {
   return "GS-" + Math.floor(100000 + Math.random() * 900000);
 }
 
+function getAffiliateCode(): string {
+  if (typeof document === "undefined") return "";
+  const match = document.cookie.match(/(?:^|;\s*)gs_ref=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : "";
+}
+
 export default function CheckoutPage() {
   const [delivery, setDelivery] = useState<Delivery>("courier");
   const [firstName, setFirstName] = useState("");
@@ -172,6 +178,7 @@ export default function CheckoutPage() {
     order_number: orderNumber,
     coupon_code: discountPct > 0 ? couponCode.toUpperCase() : "",
     discount_pct: discountPct > 0 ? String(discountPct) : "",
+    affiliate_code: getAffiliateCode(),
     items_json: JSON.stringify(items.map(({ product, qty }) => ({
       name: product.name, subtitle: product.subtitle, qty, price: product.price,
     }))),

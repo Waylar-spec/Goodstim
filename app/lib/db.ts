@@ -75,4 +75,23 @@ export async function initDb() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS affiliates (
+      id SERIAL PRIMARY KEY,
+      code TEXT UNIQUE NOT NULL,
+      token TEXT UNIQUE NOT NULL,
+      name TEXT NOT NULL,
+      email TEXT UNIQUE NOT NULL,
+      bank_account TEXT,
+      total_units_sold INTEGER NOT NULL DEFAULT 0,
+      status TEXT NOT NULL DEFAULT 'active',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
+
+  await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS affiliate_code TEXT`;
+  await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS affiliate_commission_pln NUMERIC(10,2)`;
+  await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS affiliate_tier TEXT`;
+  await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS affiliate_payout_status TEXT DEFAULT 'pending'`;
 }
