@@ -16,8 +16,9 @@ export async function GET() {
 
   const withStats = await Promise.all(affiliates.map(async (a) => {
     const sales = await sql`
-      SELECT affiliate_commission_pln, affiliate_payout_status
+      SELECT affiliate_commission_pln, affiliate_payout_status, created_at
       FROM orders WHERE affiliate_code = ${a.code} AND stripe_payment_intent_id IS NOT NULL
+      ORDER BY created_at DESC
     `;
     const totalEarned = sales.reduce((s, o) => s + parseFloat(o.affiliate_commission_pln ?? "0"), 0);
     const pending = sales
@@ -29,6 +30,7 @@ export async function GET() {
       salesCount: sales.length,
       totalEarned,
       pending,
+      lastSaleAt: sales[0]?.created_at ?? null,
     };
   }));
 
@@ -39,15 +41,23 @@ export async function PATCH(req: NextRequest) {
   if (!await isAdmin()) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { code, action } = await req.json();
-  if (action !== "mark_paid") return NextResponse.json({ error: "Invalid action" }, { status: 400 });
-
   const sql = getDb();
-  await sql`
-    UPDATE orders SET affiliate_payout_status = 'paid'
-    WHERE affiliate_code = ${code} AND affiliate_payout_status = 'pending'
-  `;
 
-  return NextResponse.json({ ok: true });
+  if (action === "mark_paid") {
+    await sql`
+      UPDATE orders SET affiliate_payout_status = 'paid'
+      WHERE affiliate_code = ${code} AND affiliate_payout_status = 'pending'
+    `;
+    return NextResponse.json({ ok: true });
+  }
+
+  if (action === "deactivate" || action === "reactivate") {
+    const status = action === "deactivate" ? "inactive" : "active";
+    await sql`UPDATE affiliates SET status = ${status} WHERE code = ${code}`;
+    return NextResponse.json({ ok: true });
+  }
+
+  return NextResponse.json({ error: "Invalid action" }, { status: 400 });
 }
 
 export async function DELETE(req: NextRequest) {

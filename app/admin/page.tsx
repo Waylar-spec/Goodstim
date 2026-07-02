@@ -153,10 +153,12 @@ export default function AdminPage() {
   type Affiliate = {
     id: number; code: string; name: string; email: string; bank_account: string | null;
     total_units_sold: number; tier: string; salesCount: number; totalEarned: number; pending: number;
+    status: string; created_at: string; lastSaleAt: string | null;
   };
   const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
   const [affiliatesLoading, setAffiliatesLoading] = useState(false);
   const [affiliatesError, setAffiliatesError] = useState(false);
+  const [affiliateFilter, setAffiliateFilter] = useState<"all" | "active" | "stale" | "never" | "inactive">("all");
 
   async function loadAffiliates() {
     setAffiliatesLoading(true);
@@ -191,6 +193,29 @@ export default function AdminPage() {
       alert(data.error ?? "Nie udało się usunąć afilianta.");
     }
   }
+
+  async function toggleAffiliateActive(code: string, currentlyActive: boolean) {
+    const action = currentlyActive ? "deactivate" : "reactivate";
+    if (currentlyActive && !confirm(`Dezaktywować afilianta ${code}? Jego link i kod przestaną działać, ale historia sprzedaży zostaje.`)) return;
+    await fetch("/api/admin/affiliates", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code, action }),
+    });
+    loadAffiliates();
+  }
+
+  const STALE_DAYS = 30;
+  const filteredAffiliates = affiliates.filter(a => {
+    if (affiliateFilter === "all") return true;
+    if (affiliateFilter === "inactive") return a.status !== "active";
+    if (a.status !== "active") return false;
+    if (affiliateFilter === "never") return !a.lastSaleAt;
+    const daysSinceLastSale = a.lastSaleAt ? (Date.now() - new Date(a.lastSaleAt).getTime()) / 86400000 : Infinity;
+    if (affiliateFilter === "stale") return daysSinceLastSale > STALE_DAYS;
+    if (affiliateFilter === "active") return daysSinceLastSale <= STALE_DAYS;
+    return true;
+  });
 
   useEffect(() => { load(); }, []);
 
@@ -920,9 +945,22 @@ export default function AdminPage() {
           <div>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-bold text-white">Program afiliacyjny</h2>
-              <button onClick={loadAffiliates} className="text-xs text-gray-400 hover:text-white border border-white/10 px-3 py-1.5 rounded-lg transition-colors">
-                ↻ Odśwież
-              </button>
+              <div className="flex items-center gap-3">
+                <select
+                  value={affiliateFilter}
+                  onChange={e => setAffiliateFilter(e.target.value as typeof affiliateFilter)}
+                  className="bg-[#111827] border border-white/10 rounded-xl px-3 py-1.5 text-xs text-gray-300 outline-none focus:border-blue-500"
+                >
+                  <option value="all">Wszyscy</option>
+                  <option value="active">Aktywni (sprzedaż w {STALE_DAYS} dni)</option>
+                  <option value="stale">Uśpieni (bez sprzedaży {STALE_DAYS}+ dni)</option>
+                  <option value="never">Nigdy nic nie sprzedali</option>
+                  <option value="inactive">Zdezaktywowani</option>
+                </select>
+                <button onClick={loadAffiliates} className="text-xs text-gray-400 hover:text-white border border-white/10 px-3 py-1.5 rounded-lg transition-colors">
+                  ↻ Odśwież
+                </button>
+              </div>
             </div>
 
             {affiliatesLoading ? (
@@ -936,21 +974,33 @@ export default function AdminPage() {
                 <p className="text-4xl mb-3">🤝</p>
                 <p className="text-gray-400 text-sm">Brak zarejestrowanych afiliantów.<br/>Rejestracja: goodstim.pl/affiliate</p>
               </div>
+            ) : filteredAffiliates.length === 0 ? (
+              <div className="bg-[#111827] border border-white/10 rounded-2xl p-12 text-center">
+                <p className="text-gray-400 text-sm">Brak afiliantów pasujących do filtra.</p>
+              </div>
             ) : (
               <div className="space-y-3">
-                {affiliates.map(a => (
-                  <div key={a.id} className="bg-[#111827] border border-white/10 rounded-2xl p-5">
+                {filteredAffiliates.map(a => (
+                  <div key={a.id} className={`bg-[#111827] border rounded-2xl p-5 ${a.status !== "active" ? "border-white/5 opacity-60" : "border-white/10"}`}>
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-3 mb-1">
                           <span className="font-semibold text-white text-sm">{a.name}</span>
                           <span className="text-xs font-mono bg-white/10 px-2 py-0.5 rounded text-gray-300">{a.code}</span>
                           <span className="text-xs bg-teal-500/20 text-teal-400 px-2 py-0.5 rounded-full font-semibold">{a.tier}</span>
+                          {a.status !== "active" && (
+                            <span className="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full font-semibold">Zdezaktywowany</span>
+                          )}
                         </div>
                         <p className="text-xs text-gray-500">{a.email}</p>
                         <p className="text-xs text-gray-500 mt-1">
                           {a.total_units_sold} szt. sprzedanych · {a.salesCount} zamówień
                           {a.bank_account && <> · konto: <span className="font-mono">{a.bank_account}</span></>}
+                        </p>
+                        <p className="text-xs text-gray-600 mt-1">
+                          Rejestracja: {new Date(a.created_at).toLocaleDateString("pl-PL")}
+                          {" · "}
+                          Ostatnia sprzedaż: {a.lastSaleAt ? new Date(a.lastSaleAt).toLocaleDateString("pl-PL") : "nigdy"}
                         </p>
                       </div>
                       <div className="text-right shrink-0">
@@ -966,12 +1016,23 @@ export default function AdminPage() {
                               Oznacz jako wypłacone
                             </button>
                           )}
-                          {a.salesCount === 0 && (
+                          {a.salesCount === 0 ? (
                             <button
                               onClick={() => deleteAffiliate(a.code)}
                               className="px-3 py-1 bg-red-600/20 hover:bg-red-600/40 text-red-400 text-xs font-semibold rounded-lg transition-colors border border-red-600/30"
                             >
                               Usuń
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => toggleAffiliateActive(a.code, a.status === "active")}
+                              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-colors border ${
+                                a.status === "active"
+                                  ? "bg-red-600/20 hover:bg-red-600/40 text-red-400 border-red-600/30"
+                                  : "bg-green-600/20 hover:bg-green-600/40 text-green-400 border-green-600/30"
+                              }`}
+                            >
+                              {a.status === "active" ? "Dezaktywuj" : "Przywróć"}
                             </button>
                           )}
                         </div>
