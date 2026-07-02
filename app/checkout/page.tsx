@@ -212,7 +212,7 @@ function CheckoutPageInner() {
       await fetch("/api/email/newsletter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, source: "checkout" }),
       });
     }
     clearCart();

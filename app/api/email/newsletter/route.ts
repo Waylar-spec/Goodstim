@@ -6,10 +6,14 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: NextRequest) {
   try {
-    const { email } = await req.json();
+    const { email, source } = await req.json();
     if (!email || !email.includes("@")) {
       return NextResponse.json({ error: "Nieprawidłowy email" }, { status: 400 });
     }
+
+    // Ktoś kto właśnie kupił po pełnej cenie nie powinien dostać maila "Twój kod rabatowy 10%" —
+    // wygląda to nie tak i wkurza klienta. Zapisujemy go cicho, bez maila powitalnego z rabatem.
+    const skipWelcomeEmail = source === "checkout";
 
     // 1. Zapisz do Neon DB (zawsze działa)
     try {
@@ -17,7 +21,7 @@ export async function POST(req: NextRequest) {
       const sql = getDb();
       await sql`
         INSERT INTO newsletter_subscribers (email, source)
-        VALUES (${email}, 'maintenance')
+        VALUES (${email}, ${source ?? "maintenance"})
         ON CONFLICT (email) DO NOTHING
       `;
     } catch (dbErr) {
@@ -32,6 +36,10 @@ export async function POST(req: NextRequest) {
       } catch (audErr) {
         console.error("Resend audience error:", audErr);
       }
+    }
+
+    if (skipWelcomeEmail) {
+      return NextResponse.json({ ok: true });
     }
 
     // 3. Wyślij email powitalny (działa tylko po weryfikacji domeny)
