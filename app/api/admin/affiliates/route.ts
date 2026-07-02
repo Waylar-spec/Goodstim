@@ -49,3 +49,19 @@ export async function PATCH(req: NextRequest) {
 
   return NextResponse.json({ ok: true });
 }
+
+export async function DELETE(req: NextRequest) {
+  if (!await isAdmin()) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const code = req.nextUrl.searchParams.get("code");
+  if (!code) return NextResponse.json({ error: "Brak kodu" }, { status: 400 });
+
+  const sql = getDb();
+  const sales = await sql`SELECT id FROM orders WHERE affiliate_code = ${code} LIMIT 1`;
+  if (sales.length > 0) {
+    return NextResponse.json({ error: "Nie można usunąć — afiliant ma sprzedaże. Można go tylko dezaktywować." }, { status: 409 });
+  }
+
+  await sql`DELETE FROM affiliates WHERE code = ${code}`;
+  return NextResponse.json({ ok: true });
+}

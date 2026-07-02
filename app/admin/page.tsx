@@ -173,6 +173,17 @@ export default function AdminPage() {
     loadAffiliates();
   }
 
+  async function deleteAffiliate(code: string) {
+    if (!confirm(`Usunąć afilianta ${code}? Tej operacji nie można cofnąć.`)) return;
+    const res = await fetch(`/api/admin/affiliates?code=${encodeURIComponent(code)}`, { method: "DELETE" });
+    if (res.ok) {
+      loadAffiliates();
+    } else {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error ?? "Nie udało się usunąć afilianta.");
+    }
+  }
+
   useEffect(() => { load(); }, []);
 
   useEffect(() => {
@@ -930,14 +941,24 @@ export default function AdminPage() {
                         <p className="text-xs text-gray-500">Do wypłaty</p>
                         <p className="text-lg font-bold text-teal-400">{a.pending.toFixed(2)} zł</p>
                         <p className="text-xs text-gray-600">łącznie: {a.totalEarned.toFixed(2)} zł</p>
-                        {a.pending > 0 && (
-                          <button
-                            onClick={() => markAffiliatePaid(a.code)}
-                            className="mt-2 px-3 py-1 bg-green-600/20 hover:bg-green-600/40 text-green-400 text-xs font-semibold rounded-lg transition-colors border border-green-600/30"
-                          >
-                            Oznacz jako wypłacone
-                          </button>
-                        )}
+                        <div className="flex gap-2 mt-2 justify-end">
+                          {a.pending > 0 && (
+                            <button
+                              onClick={() => markAffiliatePaid(a.code)}
+                              className="px-3 py-1 bg-green-600/20 hover:bg-green-600/40 text-green-400 text-xs font-semibold rounded-lg transition-colors border border-green-600/30"
+                            >
+                              Oznacz jako wypłacone
+                            </button>
+                          )}
+                          {a.salesCount === 0 && (
+                            <button
+                              onClick={() => deleteAffiliate(a.code)}
+                              className="px-3 py-1 bg-red-600/20 hover:bg-red-600/40 text-red-400 text-xs font-semibold rounded-lg transition-colors border border-red-600/30"
+                            >
+                              Usuń
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
