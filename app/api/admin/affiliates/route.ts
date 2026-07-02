@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 
 async function isAdmin() {
   const jar = await cookies();
-  return jar.get("admin_auth")?.value === process.env.ADMIN_PASSWORD;
+  return jar.get("gs_admin")?.value === process.env.ADMIN_PASSWORD;
 }
 
 export async function GET() {

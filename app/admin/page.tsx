@@ -118,6 +118,7 @@ export default function AdminPage() {
     status: string; submitted_at: string;
   }[]>([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewsError, setReviewsError] = useState(false);
 
   async function load() {
     const res = await fetch("/api/admin/orders");
@@ -129,10 +130,13 @@ export default function AdminPage() {
 
   async function loadReviews() {
     setReviewsLoading(true);
+    setReviewsError(false);
     const res = await fetch("/api/admin/reviews");
     if (res.ok) {
       const data = await res.json();
       setDbReviews(data.reviews ?? []);
+    } else {
+      setReviewsError(true);
     }
     setReviewsLoading(false);
   }
@@ -152,13 +156,17 @@ export default function AdminPage() {
   };
   const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
   const [affiliatesLoading, setAffiliatesLoading] = useState(false);
+  const [affiliatesError, setAffiliatesError] = useState(false);
 
   async function loadAffiliates() {
     setAffiliatesLoading(true);
+    setAffiliatesError(false);
     const res = await fetch("/api/admin/affiliates");
     if (res.ok) {
       const data = await res.json();
       setAffiliates(data.affiliates ?? []);
+    } else {
+      setAffiliatesError(true);
     }
     setAffiliatesLoading(false);
   }
@@ -825,6 +833,10 @@ export default function AdminPage() {
 
             {reviewsLoading ? (
               <p className="text-gray-500 text-sm">Ładowanie...</p>
+            ) : reviewsError ? (
+              <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-6 text-center">
+                <p className="text-red-400 text-sm font-semibold">Nie udało się wczytać opinii (błąd serwera lub sesja wygasła). Odśwież stronę.</p>
+              </div>
             ) : dbReviews.length === 0 ? (
               <div className="bg-[#111827] border border-white/10 rounded-2xl p-12 text-center">
                 <p className="text-4xl mb-3">⭐</p>
@@ -915,6 +927,10 @@ export default function AdminPage() {
 
             {affiliatesLoading ? (
               <p className="text-gray-500 text-sm">Ładowanie...</p>
+            ) : affiliatesError ? (
+              <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-6 text-center">
+                <p className="text-red-400 text-sm font-semibold">Nie udało się wczytać afiliantów (błąd serwera lub sesja wygasła). Odśwież stronę.</p>
+              </div>
             ) : affiliates.length === 0 ? (
               <div className="bg-[#111827] border border-white/10 rounded-2xl p-12 text-center">
                 <p className="text-4xl mb-3">🤝</p>
