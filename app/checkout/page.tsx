@@ -50,6 +50,7 @@ export default function CheckoutPage() {
   const [couponState, setCouponState] = useState<"idle" | "loading" | "ok" | "error">("idle");
   const [couponLabel, setCouponLabel] = useState("");
   const [discountPct, setDiscountPct] = useState(0);
+  const [couponAffiliateCode, setCouponAffiliateCode] = useState("");
   const { items, total, removeFromCart, setQty, clearCart } = useCart();
 
   const discountAmount = Math.round(total * discountPct / 100 * 100) / 100;
@@ -65,19 +66,28 @@ export default function CheckoutPage() {
   async function applyCoupon() {
     if (!couponCode.trim()) return;
     setCouponState("loading");
-    const res = await fetch("/api/coupon/validate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code: couponCode }),
-    });
-    const data = await res.json();
-    if (res.ok && data.valid) {
-      setDiscountPct(data.discountPct);
-      setCouponLabel(data.label);
-      setCouponState("ok");
-    } else {
+    try {
+      const res = await fetch("/api/coupon/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: couponCode }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.valid) {
+        setDiscountPct(data.discountPct);
+        setCouponLabel(data.label);
+        setCouponAffiliateCode(data.affiliateCode ?? "");
+        setCouponState("ok");
+      } else {
+        setDiscountPct(0);
+        setCouponLabel("");
+        setCouponAffiliateCode("");
+        setCouponState("error");
+      }
+    } catch {
       setDiscountPct(0);
       setCouponLabel("");
+      setCouponAffiliateCode("");
       setCouponState("error");
     }
   }
@@ -178,7 +188,7 @@ export default function CheckoutPage() {
     order_number: orderNumber,
     coupon_code: discountPct > 0 ? couponCode.toUpperCase() : "",
     discount_pct: discountPct > 0 ? String(discountPct) : "",
-    affiliate_code: getAffiliateCode(),
+    affiliate_code: couponAffiliateCode || getAffiliateCode(),
     items_json: JSON.stringify(items.map(({ product, qty }) => ({
       name: product.name, subtitle: product.subtitle, qty, price: product.price,
     }))),

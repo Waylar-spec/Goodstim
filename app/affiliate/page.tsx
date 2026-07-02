@@ -47,7 +47,7 @@ export default function AffiliatePage() {
             Zarabiaj polecając GoodStim
           </h1>
           <p className="text-slate-400 text-lg max-w-xl mx-auto">
-            Dostajesz unikalny link. Za każdą sprzedaż z Twojego polecenia otrzymujesz prowizję — od 10% do 25%, im więcej sprzedasz, tym więcej zarabiasz.
+            Dostajesz unikalny link i kod rabatowy. Za każdą sprzedaż z Twojego polecenia otrzymujesz prowizję — od 10% do 25%, im więcej sprzedasz, tym więcej zarabiasz. Twój kod daje też Twoim odbiorcom 10% zniżki.
           </p>
         </section>
 

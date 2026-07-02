@@ -87,6 +87,16 @@ export default function AffiliatePanelPage() {
                     Kopiuj
                   </button>
                 </div>
+                <p className="text-xs text-slate-500 uppercase tracking-widest mb-2 mt-5">Twój kod rabatowy (do wpisania w koszyku, daje 10% zniżki)</p>
+                <div className="flex gap-2">
+                  <input readOnly value={stats.code} className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-teal-400 text-sm font-bold tracking-widest" />
+                  <button
+                    onClick={() => { navigator.clipboard.writeText(stats.code); toast.success("Kod skopiowany!"); }}
+                    className="bg-teal-500 hover:bg-teal-400 text-slate-900 font-bold px-5 rounded-xl transition-colors"
+                  >
+                    Kopiuj
+                  </button>
+                </div>
               </div>
 
               {/* Tier progress */}

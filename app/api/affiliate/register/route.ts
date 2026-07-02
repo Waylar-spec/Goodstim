@@ -54,9 +54,14 @@ export async function POST(req: NextRequest) {
 </td></tr>
 <tr><td style="padding:36px 40px">
 <p style="margin:0 0 20px;font-size:15px;color:#475569;line-height:1.6">Twoje konto w programie afiliacyjnym GoodStim jest aktywne. Zaczynasz na poziomie <strong>Start (10%)</strong> i rośniesz wraz ze sprzedażą — do 25% na poziomie Diamond.</p>
-<div style="background:#f1f5f9;border-radius:12px;padding:16px 20px;margin-bottom:20px">
+<div style="background:#f1f5f9;border-radius:12px;padding:16px 20px;margin-bottom:12px">
 <p style="margin:0 0 4px;font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:1px">Twój link polecający</p>
 <p style="margin:0;font-size:14px;color:#0d1524;font-weight:600;word-break:break-all">${refUrl}</p>
+</div>
+<div style="background:#f1f5f9;border-radius:12px;padding:16px 20px;margin-bottom:20px">
+<p style="margin:0 0 4px;font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:1px">Twój kod rabatowy (do wpisania w koszyku)</p>
+<p style="margin:0;font-size:20px;color:#0d1524;font-weight:800;letter-spacing:1px">${code}</p>
+<p style="margin:4px 0 0;font-size:13px;color:#64748b">Osoby, które go użyją, dostają 10% zniżki — a sprzedaż i tak jest zaliczana Tobie.</p>
 </div>
 <div style="text-align:center;margin:28px 0">
 <a href="${panelUrl}" style="display:inline-block;background:#2AE5A5;color:#0d1524;font-weight:800;font-size:16px;padding:16px 36px;border-radius:50px;text-decoration:none">Otwórz panel afilianta →</a>
