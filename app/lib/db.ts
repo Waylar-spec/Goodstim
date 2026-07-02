@@ -94,4 +94,20 @@ export async function initDb() {
   await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS affiliate_commission_pln NUMERIC(10,2)`;
   await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS affiliate_tier TEXT`;
   await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS affiliate_payout_status TEXT DEFAULT 'pending'`;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS abandoned_carts (
+      id SERIAL PRIMARY KEY,
+      token TEXT UNIQUE NOT NULL,
+      email TEXT NOT NULL,
+      name TEXT,
+      phone TEXT,
+      items JSONB NOT NULL DEFAULT '[]',
+      total_pln NUMERIC(10,2) NOT NULL,
+      recovered BOOLEAN NOT NULL DEFAULT FALSE,
+      reminder_sent_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
 }

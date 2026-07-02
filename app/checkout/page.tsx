@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import Icon from "../components/Icon";
 import { useCart } from "../lib/cart";
-import { formatPrice } from "../lib/products";
+import { formatPrice, getProduct } from "../lib/products";
 import StripeProvider from "../components/StripeProvider";
 import StripeCheckoutForm from "../components/StripeCheckoutForm";
 import InPostWidget from "../components/InPostWidget";
@@ -27,7 +28,7 @@ function getAffiliateCode(): string {
   return match ? decodeURIComponent(match[1]) : "";
 }
 
-export default function CheckoutPage() {
+function CheckoutPageInner() {
   const [delivery, setDelivery] = useState<Delivery>("courier");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -51,7 +52,8 @@ export default function CheckoutPage() {
   const [couponLabel, setCouponLabel] = useState("");
   const [discountPct, setDiscountPct] = useState(0);
   const [couponAffiliateCode, setCouponAffiliateCode] = useState("");
-  const { items, total, removeFromCart, setQty, clearCart } = useCart();
+  const { items, total, removeFromCart, setQty, clearCart, addToCart } = useCart();
+  const searchParams = useSearchParams();
 
   const discountAmount = Math.round(total * discountPct / 100 * 100) / 100;
   const totalAfterDiscount = Math.max(0, total - discountAmount);
@@ -62,6 +64,33 @@ export default function CheckoutPage() {
     if (items.length > 0) trackBeginCheckout(items, totalAfterDiscount);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Odtworzenie koszyka z maila o porzuconym koszyku (?recover=token) — tylko gdy koszyk jest pusty,
+  // żeby nie nadpisać tego co ktoś ma już w koszyku na tym urządzeniu.
+  useEffect(() => {
+    const token = searchParams.get("recover");
+    if (!token || items.length > 0) return;
+
+    fetch(`/api/cart/recover?token=${token}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data) return;
+        (data.items as { id: string; qty: number }[]).forEach(i => {
+          const product = getProduct(i.id);
+          if (!product) return;
+          for (let n = 0; n < i.qty; n++) addToCart(product);
+        });
+        if (data.name) {
+          const [first, ...rest] = String(data.name).split(" ");
+          setFirstName(first ?? "");
+          setLastName(rest.join(" "));
+        }
+        if (data.email) setEmail(data.email);
+        if (data.phone) setPhone(data.phone);
+      })
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   async function applyCoupon() {
     if (!couponCode.trim()) return;
@@ -136,8 +165,25 @@ export default function CheckoutPage() {
     const err = validateStep(step);
     if (err) { setFormError(err); return; }
     setFormError(null);
+    if (step === 1) saveAbandonedCart();
     setStep((s) => Math.min(3, s + 1));
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  // Zapis koszyka po przejściu dalej od danych kontaktowych — jeśli ktoś nie dokończy checkoutu,
+  // cron wyśle mu przypomnienie mailem. Fire-and-forget, nie blokuje UI.
+  function saveAbandonedCart() {
+    fetch("/api/cart/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email,
+        name: `${firstName} ${lastName}`.trim(),
+        phone,
+        items: items.map(({ product, qty }) => ({ id: product.id, qty })),
+        total: totalAfterDiscount,
+      }),
+    }).catch(() => {});
   }
 
   function goBack() {
@@ -641,5 +687,13 @@ export default function CheckoutPage() {
         </div>
       </footer>
     </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-surface" />}>
+      <CheckoutPageInner />
+    </Suspense>
   );
 }

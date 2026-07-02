@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { getProduct } from "../lib/products";
 
 type Order = {
   id: number;
@@ -107,7 +108,7 @@ export default function AdminPage() {
   const [page, setPage] = useState(1);
   const [notesDraft, setNotesDraft] = useState("");
   const [notesSaving, setNotesSaving] = useState(false);
-  const [activeMainTab, setActiveMainTab] = useState<"orders" | "analytics" | "reviews" | "affiliates">("orders");
+  const [activeMainTab, setActiveMainTab] = useState<"orders" | "analytics" | "reviews" | "affiliates" | "carts">("orders");
   const [period, setPeriod] = useState<"7d" | "30d" | "90d" | "custom">("30d");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
@@ -217,11 +218,34 @@ export default function AdminPage() {
     return true;
   });
 
+  type AbandonedCart = {
+    id: number; token: string; email: string; name: string | null; phone: string | null;
+    items: { id: string; qty: number }[]; total_pln: string;
+    recovered: boolean; reminder_sent_at: string | null; created_at: string;
+  };
+  const [carts, setCarts] = useState<AbandonedCart[]>([]);
+  const [cartsLoading, setCartsLoading] = useState(false);
+  const [cartsError, setCartsError] = useState(false);
+
+  async function loadCarts() {
+    setCartsLoading(true);
+    setCartsError(false);
+    const res = await fetch("/api/admin/abandoned-carts");
+    if (res.ok) {
+      const data = await res.json();
+      setCarts(data.carts ?? []);
+    } else {
+      setCartsError(true);
+    }
+    setCartsLoading(false);
+  }
+
   useEffect(() => { load(); }, []);
 
   useEffect(() => {
     if (activeMainTab === "reviews") loadReviews();
     if (activeMainTab === "affiliates") loadAffiliates();
+    if (activeMainTab === "carts") loadCarts();
   }, [activeMainTab]);
 
   async function setStatus(id: number, status: string) {
@@ -407,13 +431,13 @@ export default function AdminPage() {
           <span className="text-xs bg-blue-600 px-2 py-0.5 rounded-full">Admin</span>
           {/* Main tabs */}
           <div className="flex gap-1 ml-4">
-            {(["orders", "analytics", "reviews", "affiliates"] as const).map(t => (
+            {(["orders", "analytics", "reviews", "affiliates", "carts"] as const).map(t => (
               <button
                 key={t}
                 onClick={() => setActiveMainTab(t)}
                 className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors ${activeMainTab === t ? "bg-white/10 text-white" : "text-gray-400 hover:text-white"}`}
               >
-                {t === "orders" ? "Zamówienia" : t === "analytics" ? "Analityka" : t === "reviews" ? `Opinie${dbReviews.filter(r => r.status === "pending_approval").length > 0 ? ` (${dbReviews.filter(r => r.status === "pending_approval").length})` : ""}` : "Afiliacja"}
+                {t === "orders" ? "Zamówienia" : t === "analytics" ? "Analityka" : t === "reviews" ? `Opinie${dbReviews.filter(r => r.status === "pending_approval").length > 0 ? ` (${dbReviews.filter(r => r.status === "pending_approval").length})` : ""}` : t === "affiliates" ? "Afiliacja" : "Porzucone koszyki"}
               </button>
             ))}
           </div>
@@ -1040,6 +1064,67 @@ export default function AdminPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ─── ABANDONED CARTS TAB ─── */}
+        {activeMainTab === "carts" && (
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-bold text-white">Porzucone koszyki</h2>
+              <button onClick={loadCarts} className="text-xs text-gray-400 hover:text-white border border-white/10 px-3 py-1.5 rounded-lg transition-colors">
+                ↻ Odśwież
+              </button>
+            </div>
+
+            {cartsLoading ? (
+              <p className="text-gray-500 text-sm">Ładowanie...</p>
+            ) : cartsError ? (
+              <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-6 text-center">
+                <p className="text-red-400 text-sm font-semibold">Nie udało się wczytać koszyków (błąd serwera lub sesja wygasła). Odśwież stronę.</p>
+              </div>
+            ) : carts.length === 0 ? (
+              <div className="bg-[#111827] border border-white/10 rounded-2xl p-12 text-center">
+                <p className="text-4xl mb-3">🛒</p>
+                <p className="text-gray-400 text-sm">Brak porzuconych koszyków (jeszcze).<br/>Zapisujemy je gdy ktoś poda dane kontaktowe w checkoucie i nie dokończy zamówienia.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {carts.map(c => {
+                  const itemsLabel = c.items.map(i => {
+                    const p = getProduct(i.id);
+                    return p ? `${p.name} ×${i.qty}` : `? ×${i.qty}`;
+                  }).join(", ");
+                  return (
+                    <div key={c.id} className={`bg-[#111827] border rounded-2xl p-5 ${c.recovered ? "border-green-500/20" : "border-white/10"}`}>
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-3 mb-1">
+                            <span className="font-semibold text-white text-sm">{c.name || "—"}</span>
+                            {c.recovered ? (
+                              <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full font-semibold">✓ Odzyskany</span>
+                            ) : c.reminder_sent_at ? (
+                              <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full font-semibold">Wysłano przypomnienie</span>
+                            ) : (
+                              <span className="text-xs bg-gray-500/20 text-gray-400 px-2 py-0.5 rounded-full font-semibold">Czeka</span>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-500">{c.email}{c.phone && <> · {c.phone}</>}</p>
+                          <p className="text-xs text-gray-500 mt-1">{itemsLabel}</p>
+                          <p className="text-xs text-gray-600 mt-1">
+                            Porzucony: {new Date(c.created_at).toLocaleString("pl-PL")}
+                          </p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-xs text-gray-500">Wartość</p>
+                          <p className="text-lg font-bold text-teal-400">{parseFloat(c.total_pln).toFixed(2)} zł</p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

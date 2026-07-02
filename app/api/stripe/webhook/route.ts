@@ -163,6 +163,19 @@ export async function POST(req: NextRequest) {
 
     const base = process.env.NEXT_PUBLIC_BASE_URL ?? "";
 
+    // Zamówienie doszło do skutku — nie wysyłaj już przypomnienia o porzuconym koszyku dla tego maila
+    if (meta.customer_email) {
+      try {
+        const sql = getDb();
+        await sql`
+          UPDATE abandoned_carts SET recovered = TRUE
+          WHERE email = ${meta.customer_email.toLowerCase()} AND recovered = FALSE
+        `;
+      } catch (cartErr) {
+        console.error("Abandoned cart mark-recovered error:", cartErr);
+      }
+    }
+
     // Prowizja afiliacyjna — poziom liczony ze skumulowanej sprzedaży PRZED tym zamówieniem (tylko w górę)
     if (meta.affiliate_code) {
       try {
