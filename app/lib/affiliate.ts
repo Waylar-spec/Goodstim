@@ -6,9 +6,9 @@ export type Tier = { name: string; rate: number; minUnits: number };
 
 export const TIERS: Tier[] = [
   { name: "Start", rate: 0.10, minUnits: 0 },
-  { name: "Silver", rate: 0.15, minUnits: 3 },
-  { name: "Gold", rate: 0.20, minUnits: 8 },
-  { name: "Diamond", rate: 0.25, minUnits: 18 },
+  { name: "Silver", rate: 0.15, minUnits: 5 },
+  { name: "Gold", rate: 0.20, minUnits: 12 },
+  { name: "Diamond", rate: 0.25, minUnits: 25 },
 ];
 
 export function getTier(totalUnits: number): Tier {
