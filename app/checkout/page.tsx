@@ -58,7 +58,11 @@ function CheckoutPageInner() {
   const discountAmount = Math.round(total * discountPct / 100 * 100) / 100;
   const totalAfterDiscount = Math.max(0, total - discountAmount);
   const amountGrosze = Math.round(totalAfterDiscount * 100);
-  const orderNumber = useState(() => genOrderNumber())[0];
+  const [orderNumber, setOrderNumber] = useState("");
+
+  useEffect(() => {
+    setOrderNumber(genOrderNumber());
+  }, []);
 
   useEffect(() => {
     if (items.length > 0) trackBeginCheckout(items, totalAfterDiscount);
@@ -565,7 +569,7 @@ function CheckoutPageInner() {
                 <div className="bg-white rounded-[24px] border border-outline-variant/10 shadow-[0px_4px_20px_rgba(37,37,55,0.04)] overflow-hidden">
                   <div className="p-8 bg-tech-blue">
                     <h3 className="font-montserrat text-2xl font-semibold text-white">Twoje zamówienie</h3>
-                    <p className="text-on-primary-container text-xs mt-1">Zamówienie #{orderNumber}</p>
+                    <p className="text-on-primary-container text-xs mt-1">{orderNumber ? `Zamówienie #${orderNumber}` : "Przygotowywanie zamówienia…"}</p>
                   </div>
                   <div className="p-8 space-y-6">
                     {items.length === 0 ? (
