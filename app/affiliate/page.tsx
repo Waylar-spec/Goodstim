@@ -10,6 +10,8 @@ import { TIERS } from "../lib/affiliate";
 const HERO_IMG = "/polecenia/1.png";
 const QUESTIONS_IMG = "/polecenia/2.png";
 const GRID_IMG = "/polecenia/3.png";
+const PHONE_IMG_1 = "/polecenia/4.png";
+const PHONE_IMG_2 = "/polecenia/5.png";
 
 const VALUE_PROPS = [
   {
@@ -224,23 +226,53 @@ export default function AffiliatePage() {
         </section>
 
         {/* HOW IT WORKS */}
-        <section className="py-24 bg-surface-container-lowest" id="jak-to-dziala">
-          <div className="max-w-[1280px] mx-auto px-6 md:px-16">
-            <div className="text-center mb-16 space-y-4">
-              <h2 className="font-montserrat text-[32px] leading-[40px] font-semibold tracking-[-0.01em] text-primary">
-                Jak zostać partnerem — 4 kroki
+        <section className="py-24 bg-surface-container-lowest overflow-hidden" id="jak-to-dziala">
+          <div className="max-w-[1280px] mx-auto px-6 md:px-16 grid lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <h2 className="font-montserrat text-[32px] leading-[40px] font-semibold tracking-[-0.01em] text-primary mb-4">
+                Jak zostać partnerem
               </h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-              {STEPS.map((s) => (
-                <div key={s.num} className="text-center">
-                  <div className="w-16 h-16 bg-tech-blue text-white rounded-2xl flex items-center justify-center mx-auto mb-6 font-montserrat text-2xl font-bold">
-                    {s.num}
+              <p className="text-on-surface-variant leading-relaxed mb-10 max-w-md">
+                Gotowy(-a) rozwijać się razem z GoodStim? Dołącz do programu partnerskiego i zacznij dostarczać rozwiązania wellness swojej społeczności.
+              </p>
+              <div>
+                {STEPS.map((s, i) => (
+                  <div key={s.num} className="flex gap-6">
+                    <div className="flex flex-col items-center">
+                      <div className="w-9 h-9 rounded-full bg-vibrant-teal text-white flex items-center justify-center font-montserrat font-bold text-sm flex-shrink-0">
+                        {s.num}
+                      </div>
+                      {i < STEPS.length - 1 && <div className="w-0.5 flex-1 bg-vibrant-teal/25 my-1" />}
+                    </div>
+                    <div className={i < STEPS.length - 1 ? "pb-10" : ""}>
+                      <h3 className="font-montserrat text-lg font-semibold text-primary mb-1">{s.title}</h3>
+                      <p className="text-sm text-on-surface-variant">{s.desc}</p>
+                    </div>
                   </div>
-                  <h3 className="font-montserrat text-lg font-semibold text-primary mb-2">{s.title}</h3>
-                  <p className="text-sm text-on-surface-variant">{s.desc}</p>
-                </div>
-              ))}
+                ))}
+              </div>
+            </div>
+            <div className="relative h-[480px] hidden lg:block">
+              <div className="absolute left-[6%] top-[4%] w-[52%] rotate-[-8deg] drop-shadow-2xl">
+                <Image
+                  src={PHONE_IMG_1}
+                  alt="Aplikacja społecznościowa z postem o GoodStim"
+                  width={1688}
+                  height={2374}
+                  sizes="360px"
+                  className="w-full h-auto"
+                />
+              </div>
+              <div className="absolute right-0 bottom-0 w-[40%] rotate-[6deg] drop-shadow-2xl z-10">
+                <Image
+                  src={PHONE_IMG_2}
+                  alt="Profil GoodStim w aplikacji społecznościowej"
+                  width={1692}
+                  height={1288}
+                  sizes="280px"
+                  className="w-full h-auto"
+                />
+              </div>
             </div>
           </div>
         </section>
@@ -248,8 +280,8 @@ export default function AffiliatePage() {
         {/* HAVE QUESTIONS */}
         <section className="py-16">
           <div className="max-w-[1280px] mx-auto px-6 md:px-16">
-            <div className="bg-soft-mint rounded-[32px] p-10 md:p-16 grid md:grid-cols-2 gap-10 items-center overflow-hidden">
-              <div className="relative h-[200px] md:h-[280px] order-2 md:order-1">
+            <div className="relative bg-soft-mint rounded-[32px] grid md:grid-cols-2 gap-8 md:gap-10 items-center p-8 md:py-14 md:pl-0 md:pr-16">
+              <div className="relative h-[220px] md:h-[420px] order-2 md:order-1 md:-my-24">
                 <Image
                   src={QUESTIONS_IMG}
                   alt="GoodStim VNS One — detal urządzenia"
