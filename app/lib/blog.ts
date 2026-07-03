@@ -54,7 +54,7 @@ ${DISCLAIMER}
   },
   {
     slug: "tvns-a-redukcja-stresu",
-    title: "Jak stymulacja nerwu błędnego (tVNS) może wspierać redukcję stresu",
+    title: "Redukcja stresu dzięki stymulacji nerwu błędnego",
     excerpt: "Stres towarzyszy nam codziennie. Sprawdź, jak przezskórna stymulacja nerwu błędnego pomaga wielu osobom odzyskać spokój w 15 minut dziennie.",
     category: "Stres",
     readMin: 5,

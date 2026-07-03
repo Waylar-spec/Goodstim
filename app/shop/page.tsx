@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import ShopClient from "../components/ShopClient";
+import { REVIEWS, AGGREGATE_RATING } from "../lib/reviews";
 
 export const metadata: Metadata = {
   title: "Kup GoodStim VNS One — Stymulator Nerwu Błędnego · 550 PLN",
@@ -34,6 +35,7 @@ const productJsonLd = {
   name: "GoodStim VNS One — Stymulator Nerwu Błędnego",
   description:
     "Profesjonalny stymulator nerwu błędnego (tVNS) do użytku domowego. 50 poziomów stymulacji 1–50 mA, kompatybilny z iOS i Android, bateria 24h, materiał hipoalergiczny klasy medycznej.",
+  image: "https://goodstim.pl/product.png",
   brand: { "@type": "Brand", name: "GoodStim" },
   sku: "GS-VNS-ONE-001",
   category: "Urządzenia wellness / stymulacja nerwu błędnego",
@@ -41,37 +43,33 @@ const productJsonLd = {
     "@type": "Offer",
     priceCurrency: "PLN",
     price: "550",
-    priceValidUntil: "2025-12-31",
     availability: "https://schema.org/InStock",
     itemCondition: "https://schema.org/NewCondition",
     seller: { "@type": "Organization", name: "GoodStim" },
     shippingDetails: {
       "@type": "OfferShippingDetails",
       shippingRate: { "@type": "MonetaryAmount", value: "0", currency: "PLN" },
+      deliveryTime: {
+        "@type": "ShippingDeliveryTime",
+        handlingTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 1, unitCode: "d" },
+        transitTime: { "@type": "QuantitativeValue", minValue: 1, maxValue: 2, unitCode: "d" },
+      },
+      shippingDestination: { "@type": "DefinedRegion", addressCountry: "PL" },
     },
   },
   aggregateRating: {
     "@type": "AggregateRating",
-    ratingValue: "4.8",
+    ratingValue: AGGREGATE_RATING.score.toFixed(1),
+    reviewCount: String(AGGREGATE_RATING.count),
     bestRating: "5",
-    reviewCount: "2450",
+    worstRating: "1",
   },
-  review: [
-    {
-      "@type": "Review",
-      reviewRating: { "@type": "Rating", ratingValue: "5" },
-      author: { "@type": "Person", name: "Marek K." },
-      reviewBody:
-        "Moja jakość snu poprawiła się diametralnie. Wstaję wypoczęty, a stres w pracy nie jest już tak obciążający.",
-    },
-    {
-      "@type": "Review",
-      reviewRating: { "@type": "Rating", ratingValue: "5" },
-      author: { "@type": "Person", name: "Piotr L." },
-      reviewBody:
-        "Najlepsza inwestycja w zdrowie psychiczne. Jako biohacker testowałem wiele urządzeń, ale to jest klasa sama w sobie.",
-    },
-  ],
+  review: REVIEWS.map((r) => ({
+    "@type": "Review",
+    reviewRating: { "@type": "Rating", ratingValue: String(r.rating), bestRating: "5" },
+    author: { "@type": "Person", name: r.name },
+    reviewBody: r.text,
+  })),
 };
 
 export default function ShopPage() {
