@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import { getPost, getAllSlugs, getRelated, BLOG_IMAGES } from "../../lib/blog";
@@ -72,12 +73,16 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           {/* Header */}
           <div className="mb-10">
             {BLOG_IMAGES[post.slug] ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={BLOG_IMAGES[post.slug]}
-                alt={post.title}
-                className="w-full rounded-3xl object-cover aspect-[16/7] mb-8"
-              />
+              <div className="relative w-full rounded-3xl overflow-hidden aspect-[16/7] mb-8">
+                <Image
+                  src={BLOG_IMAGES[post.slug]}
+                  alt={post.title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 800px"
+                  className="object-cover"
+                  priority
+                />
+              </div>
             ) : (
               <div className="text-center text-[64px] mb-4">{post.cover}</div>
             )}
@@ -127,8 +132,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                 >
                   <div className="relative overflow-hidden bg-gradient-to-br from-soft-mint to-surface-container aspect-[16/9]">
                     {BLOG_IMAGES[r.slug] ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={BLOG_IMAGES[r.slug]} alt={r.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <Image src={BLOG_IMAGES[r.slug]} alt={r.title} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                     ) : (
                       <div className="flex items-center justify-center h-full text-[48px]">{r.cover}</div>
                     )}

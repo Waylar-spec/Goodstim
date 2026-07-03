@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import Icon from "./Icon";
@@ -80,10 +81,13 @@ export default function HomeClient() {
             <div className="relative group">
               <div className="absolute inset-0 bg-vibrant-teal/5 blur-[120px] rounded-full pointer-events-none" />
               <div className="relative bg-white p-8 rounded-[40px] shadow-2xl border border-soft-mint transition-transform duration-700 group-hover:scale-105">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src={HERO_IMG}
                   alt="Stymulator nerwu błędnego GoodStim VNS One"
+                  width={1024}
+                  height={1024}
+                  sizes="(max-width: 1024px) 90vw, 500px"
+                  priority
                   className="w-full h-auto object-cover rounded-3xl"
                 />
               </div>
@@ -125,11 +129,12 @@ export default function HomeClient() {
             <div className="grid lg:grid-cols-2 gap-24 items-center">
               <div className="order-2 lg:order-1">
                 <div className="relative h-[600px] w-full bg-surface-container rounded-[40px] overflow-hidden">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <Image
                     src={LIFESTYLE_IMG}
                     alt="Osoba używająca stymulatora nerwu błędnego GoodStim"
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="(max-width: 1024px) 90vw, 600px"
+                    className="object-cover"
                   />
                   <div className="absolute bottom-8 left-8 right-8 bg-white/40 backdrop-blur-md p-6 rounded-2xl border border-white/20">
                     <div className="flex items-center gap-4">
@@ -193,8 +198,7 @@ export default function HomeClient() {
                   <div className="text-vibrant-teal text-lg tracking-widest leading-none">★★★★★</div>
                   <p className="text-white/90 leading-relaxed text-[15px]">„{r.text}&rdquo;</p>
                   <div className="flex items-center gap-3 pt-2">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={r.avatar} alt={r.name} className="w-11 h-11 rounded-full object-cover flex-shrink-0" />
+                    <Image src={r.avatar} alt={r.name} width={44} height={44} className="w-11 h-11 rounded-full object-cover flex-shrink-0" />
                     <div>
                       <p className="font-semibold text-sm">{r.name}</p>
                       <p className="text-white/50 text-xs">{r.location} · {r.date}</p>

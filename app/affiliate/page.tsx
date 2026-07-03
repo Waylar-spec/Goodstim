@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Icon from "../components/Icon";
@@ -129,10 +130,13 @@ export default function AffiliatePage() {
             <div className="relative group">
               <div className="absolute inset-0 bg-vibrant-teal/5 blur-[120px] rounded-full pointer-events-none" />
               <div className="relative bg-white p-8 rounded-[40px] shadow-2xl border border-soft-mint transition-transform duration-700 group-hover:scale-105">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src={HERO_IMG}
                   alt="GoodStim VNS One — stymulator nerwu błędnego"
+                  width={1024}
+                  height={1024}
+                  sizes="(max-width: 1024px) 90vw, 500px"
+                  priority
                   className="w-full h-auto object-cover rounded-3xl"
                 />
               </div>

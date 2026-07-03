@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import Icon from "./Icon";
@@ -84,11 +85,13 @@ export default function ShopClient() {
             {/* Gallery */}
             <div className="lg:col-span-7 space-y-6">
               <div className="aspect-square bg-surface-container-low rounded-[24px] overflow-hidden border border-soft-mint relative group">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src={thumbs[activeThumb]}
                   alt="Stymulator nerwu błędnego GoodStim VNS One — widok główny"
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  fill
+                  sizes="(max-width: 1024px) 90vw, 700px"
+                  priority
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
                 />
                 <div className="absolute bottom-6 left-6 px-4 py-2 bg-white/40 backdrop-blur-md border border-white/20 rounded-full flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-vibrant-teal pulse-active" />
@@ -101,13 +104,14 @@ export default function ShopClient() {
                     <button
                       key={i}
                       onClick={() => setActiveThumb(i)}
-                      className={`aspect-square rounded-xl overflow-hidden transition-all ${activeThumb === i ? "border-2 border-secondary" : "border border-outline-variant/30 hover:border-secondary"}`}
+                      className={`relative aspect-square rounded-xl overflow-hidden transition-all ${activeThumb === i ? "border-2 border-secondary" : "border border-outline-variant/30 hover:border-secondary"}`}
                     >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
+                      <Image
                         src={src}
                         alt={`GoodStim stymulator nerwu błędnego — widok ${i + 1}`}
-                        className="w-full h-full object-cover"
+                        fill
+                        sizes="120px"
+                        className="object-cover"
                       />
                     </button>
                   ) : (
@@ -305,8 +309,7 @@ export default function ShopClient() {
               {accessories.map((acc) => (
                 <div key={acc.id} className={`bg-white rounded-[24px] border border-outline-variant/20 shadow-sm overflow-hidden flex flex-col transition-shadow ${acc.comingSoon ? "opacity-70" : "hover:shadow-md"}`}>
                   <div className="aspect-square bg-surface-container-low overflow-hidden relative">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={acc.image} alt={acc.name} className={`w-full h-full object-cover ${acc.comingSoon ? "grayscale" : ""}`} />
+                    <Image src={acc.image} alt={acc.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className={`object-cover ${acc.comingSoon ? "grayscale" : ""}`} />
                     {acc.comingSoon ? (
                       <span className="absolute top-4 left-4 px-2.5 py-1 bg-on-surface-variant/80 text-white text-[10px] font-bold uppercase tracking-wider rounded-full backdrop-blur-sm">
                         Wkrótce
@@ -377,10 +380,11 @@ export default function ShopClient() {
                   <div key={review.name} className="w-full flex-shrink-0 px-1">
                     <div className="bg-white rounded-[32px] border border-outline-variant/20 shadow-sm p-8 md:p-10 space-y-6">
                       <div className="flex items-center gap-4">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
+                        <Image
                           src={review.avatar}
                           alt={review.name}
+                          width={56}
+                          height={56}
                           className="w-14 h-14 rounded-full object-cover flex-shrink-0"
                         />
                         <div>

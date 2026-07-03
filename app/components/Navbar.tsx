@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import Icon from "./Icon";
 import { useCart } from "../lib/cart";
@@ -109,9 +110,8 @@ export default function Navbar() {
             items.map(({ product, qty }) => (
               <div key={product.id} className="flex gap-4 pb-4 border-b border-outline-variant/15 last:border-0">
                 {/* Image */}
-                <div className="w-20 h-20 bg-surface-container rounded-xl flex-shrink-0 overflow-hidden">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                <div className="relative w-20 h-20 bg-surface-container rounded-xl flex-shrink-0 overflow-hidden">
+                  <Image src={product.image} alt={product.name} fill sizes="80px" className="object-cover" />
                 </div>
 
                 {/* Info */}

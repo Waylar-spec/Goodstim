@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import Icon from "../components/Icon";
 import { useCart } from "../lib/cart";
@@ -581,9 +582,8 @@ function CheckoutPageInner() {
                       <div className="space-y-4">
                         {items.map(({ product, qty }) => (
                           <div key={product.id} className="flex gap-4">
-                            <div className="w-20 h-20 rounded-xl bg-surface-container overflow-hidden flex-shrink-0">
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                            <div className="relative w-20 h-20 rounded-xl bg-surface-container overflow-hidden flex-shrink-0">
+                              <Image src={product.image} alt={product.name} fill sizes="80px" className="object-cover" />
                             </div>
                             <div className="flex flex-col justify-between py-1 flex-1 min-w-0">
                               <div>

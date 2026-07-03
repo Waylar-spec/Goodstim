@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Icon from "../components/Icon";
@@ -115,8 +116,7 @@ export default function SciencePage() {
               {/* Center image */}
               <div className="relative h-[500px] flex justify-center items-center">
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-soft-mint/20 to-transparent rounded-full blur-3xl" />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={ANATOMY_IMG} alt="Vagus nerve anatomy" className="relative z-10 max-h-full object-contain" />
+                <Image src={ANATOMY_IMG} alt="Vagus nerve anatomy" fill sizes="(max-width: 1024px) 90vw, 400px" className="z-10 object-contain" />
               </div>
               {/* Right cards */}
               <div className="space-y-6">
@@ -253,9 +253,8 @@ export default function SciencePage() {
                   Stymulacja przed snem wydłuża czas trwania fazy głębokiej o średnio 45 minut, co drastycznie przyspiesza procesy regeneracyjne i konsolidację pamięci.
                 </p>
               </div>
-              <div className="w-full md:w-48 h-48 rounded-[24px] overflow-hidden flex-shrink-0">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={SLEEP_IMG} alt="Deep sleep study" className="w-full h-full object-cover" />
+              <div className="relative w-full md:w-48 h-48 rounded-[24px] overflow-hidden flex-shrink-0">
+                <Image src={SLEEP_IMG} alt="Deep sleep study" fill sizes="192px" className="object-cover" />
               </div>
             </div>
           </div>

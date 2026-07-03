@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { BlogPost, CATEGORIES, BLOG_IMAGES } from "../lib/blog";
 
 const CAT_COLORS: Record<string, string> = {
@@ -51,11 +52,12 @@ export default function BlogIndexClient({ posts }: { posts: BlogPost[] }) {
           <div className="grid md:grid-cols-2">
             <div className="relative overflow-hidden bg-gradient-to-br from-tech-blue to-primary min-h-[220px] md:min-h-0">
               {BLOG_IMAGES[featured.slug] ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <Image
                   src={BLOG_IMAGES[featured.slug]}
                   alt={featured.title}
-                  className="w-full h-full object-cover absolute inset-0 group-hover:scale-105 transition-transform duration-700"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-cover group-hover:scale-105 transition-transform duration-700"
                 />
               ) : (
                 <div className="flex items-center justify-center h-full py-16 text-[80px]">{featured.cover}</div>
@@ -88,11 +90,12 @@ export default function BlogIndexClient({ posts }: { posts: BlogPost[] }) {
           >
             <div className="relative overflow-hidden bg-gradient-to-br from-soft-mint to-surface-container aspect-[16/9]">
               {BLOG_IMAGES[post.slug] ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <Image
                   src={BLOG_IMAGES[post.slug]}
                   alt={post.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               ) : (
                 <div className="flex items-center justify-center h-full text-[56px]">{post.cover}</div>
