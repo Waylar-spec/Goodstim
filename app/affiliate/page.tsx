@@ -7,7 +7,9 @@ import Footer from "../components/Footer";
 import Icon from "../components/Icon";
 import { TIERS } from "../lib/affiliate";
 
-const HERO_IMG = "/product.png";
+const HERO_IMG = "/polecenia/1.png";
+const QUESTIONS_IMG = "/polecenia/2.png";
+const GRID_IMG = "/polecenia/3.png";
 
 const VALUE_PROPS = [
   {
@@ -105,9 +107,19 @@ export default function AffiliatePage() {
 
       <main className="pt-20">
         {/* HERO */}
-        <section className="relative overflow-hidden py-20 lg:py-28">
-          <div className="max-w-[1280px] mx-auto px-6 md:px-16 grid lg:grid-cols-2 gap-16 items-center">
-            <div className="space-y-8">
+        <section className="relative overflow-hidden">
+          <div className="grid lg:grid-cols-2 items-center">
+            <div className="relative h-[420px] sm:h-[520px] lg:h-[720px] w-full order-1 lg:order-1">
+              <Image
+                src={HERO_IMG}
+                alt="Mężczyzna relaksujący się z GoodStim VNS One na szyi"
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                priority
+                className="object-cover"
+              />
+            </div>
+            <div className="px-6 md:px-16 py-16 lg:py-0 space-y-8 order-2 lg:order-2">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-soft-mint rounded-full text-secondary text-sm font-semibold tracking-wide">
                 <span className="w-2 h-2 rounded-full bg-vibrant-teal pulse-teal flex-shrink-0" />
                 Program Partnerski GoodStim
@@ -127,19 +139,32 @@ export default function AffiliatePage() {
                 </a>
               </div>
             </div>
-            <div className="relative group">
-              <div className="absolute inset-0 bg-vibrant-teal/5 blur-[120px] rounded-full pointer-events-none" />
-              <div className="relative bg-white p-8 rounded-[40px] shadow-2xl border border-soft-mint transition-transform duration-700 group-hover:scale-105">
-                <Image
-                  src={HERO_IMG}
-                  alt="GoodStim VNS One — stymulator nerwu błędnego"
-                  width={1024}
-                  height={1024}
-                  sizes="(max-width: 1024px) 90vw, 500px"
-                  priority
-                  className="w-full h-auto object-cover rounded-3xl"
-                />
-              </div>
+          </div>
+        </section>
+
+        {/* SOCIAL PROOF GRID */}
+        <section className="py-24">
+          <div className="max-w-[1280px] mx-auto px-6 md:px-16 grid lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <h2 className="font-montserrat text-[32px] leading-[40px] font-semibold tracking-[-0.01em] text-primary mb-6">
+                Rosnące zainteresowanie stymulacją nerwu błędnego
+              </h2>
+              <p className="text-on-surface-variant leading-relaxed mb-8">
+                Coraz więcej osób szuka sposobów na redukcję stresu i lepszy sen bez tabletek. Stymulacja nerwu błędnego (tVNS) to rosnąca kategoria wellness i biohackingu — dołączasz do czegoś, co dopiero nabiera rozpędu w Polsce.
+              </p>
+              <a href="#dolacz" className="inline-flex items-center gap-2 bg-tech-blue text-white font-semibold px-6 py-3.5 rounded-full hover:scale-[1.02] transition-all text-sm">
+                Dołącz do partnerów
+                <Icon name="arrow_forward" className="text-[18px]" />
+              </a>
+            </div>
+            <div className="relative h-[380px] md:h-[480px] rounded-[24px] overflow-hidden">
+              <Image
+                src={GRID_IMG}
+                alt="Osoby korzystające z GoodStim VNS One"
+                fill
+                sizes="(max-width: 1024px) 100vw, 600px"
+                className="object-cover"
+              />
             </div>
           </div>
         </section>
@@ -216,6 +241,38 @@ export default function AffiliatePage() {
                   <p className="text-sm text-on-surface-variant">{s.desc}</p>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* HAVE QUESTIONS */}
+        <section className="py-16">
+          <div className="max-w-[1280px] mx-auto px-6 md:px-16">
+            <div className="bg-soft-mint rounded-[32px] p-10 md:p-16 grid md:grid-cols-2 gap-10 items-center overflow-hidden">
+              <div className="relative h-[200px] md:h-[280px] order-2 md:order-1">
+                <Image
+                  src={QUESTIONS_IMG}
+                  alt="GoodStim VNS One — detal urządzenia"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 500px"
+                  className="object-contain"
+                />
+              </div>
+              <div className="order-1 md:order-2">
+                <h2 className="font-montserrat text-[28px] md:text-[32px] font-semibold text-secondary mb-4">
+                  Masz pytania?
+                </h2>
+                <p className="text-on-surface-variant mb-6">
+                  Jesteśmy gotowi odpowiedzieć! Napisz do nas i zacznijmy rozmowę.
+                </p>
+                <a
+                  href="mailto:kontakt@goodstim.pl"
+                  className="inline-flex items-center gap-2 bg-secondary text-white font-semibold px-6 py-3.5 rounded-full hover:scale-[1.02] transition-all text-sm"
+                >
+                  Kontakt
+                  <Icon name="arrow_forward" className="text-[18px]" />
+                </a>
+              </div>
             </div>
           </div>
         </section>
