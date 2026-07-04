@@ -46,20 +46,6 @@ const FEED_PRODUCTS = [
     availability: "preorder",
     condition: "new",
   },
-  {
-    id: "electrodes",
-    title: "GoodStim Elektrody Zapasowe (4 szt.)",
-    description: "Wymienne elektrody ze stali nierdzewnej dedykowane do GoodStim VNS One. Zestaw 4 sztuk.",
-    link: `${BASE}/shop`,
-    image: `${BASE}/product.png`,
-    price: "49.00 PLN",
-    brand: "GoodStim",
-    mpn: "GS-ELEC-4PK",
-    googleCategory: "491",
-    productType: "Urządzenia wellness > Akcesoria do stymulatorów",
-    availability: "preorder",
-    condition: "new",
-  },
 ];
 
 function esc(s: string) {

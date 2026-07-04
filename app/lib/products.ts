@@ -42,16 +42,6 @@ export const PRODUCTS: Product[] = [
     badge: "Oszczędny",
     comingSoon: true,
   },
-  {
-    id: "electrodes",
-    name: "Elektrody zapasowe",
-    subtitle: "4 szt. · Stal nierdzewna",
-    price: 49,
-    image: "/product.png",
-    category: "accessory",
-    description: "Wymienne elektrody ze stali nierdzewnej dedykowane do GoodStim VNS One.",
-    comingSoon: true,
-  },
 ];
 
 export const formatPrice = (price: number): string =>
