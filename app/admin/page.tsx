@@ -460,7 +460,7 @@ export default function AdminPage() {
       dow[d].count++;
     });
 
-    return { revenue, prevRevenue, count, prevCount, aov, prevAov, pending, buckets, byStatus, byDelivery, topProducts, dow, spanDays };
+    return { revenue, prevRevenue, count, prevCount, aov, prevAov, pending, buckets, byStatus, byDelivery, topProducts, dow, spanDays, totalCount: cur.length };
   }, [orders, period, customFrom, customTo]);
 
   const DOW_LABELS = ["Nd", "Pn", "Wt", "Śr", "Cz", "Pt", "Sb"];
@@ -842,11 +842,11 @@ export default function AdminPage() {
               {/* Status breakdown */}
               <div className="bg-[#111827] border border-white/10 rounded-2xl p-6 space-y-4">
                 <p className="text-sm font-semibold text-gray-200">Status zamówień</p>
-                {analytics.count === 0 ? (
+                {analytics.totalCount === 0 ? (
                   <p className="text-xs text-gray-500">Brak danych</p>
                 ) : Object.entries(STATUS_LABELS).map(([key, { label, color }]) => {
                   const n = analytics.byStatus[key] ?? 0;
-                  const pct = analytics.count > 0 ? (n / analytics.count) * 100 : 0;
+                  const pct = analytics.totalCount > 0 ? (n / analytics.totalCount) * 100 : 0;
                   return (
                     <div key={key}>
                       <div className="flex justify-between text-xs mb-1">
