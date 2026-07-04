@@ -22,6 +22,11 @@ const IMGS = {
   t3: "/product.png",
 };
 
+// TYMCZASOWE — sprzęt aktualnie jest w transporcie, więc wysyłki się wydłużają.
+// Usunąć SHIPPING_DELAY_NOTICE (i oba miejsca, które go używają) gdy zapasy się unormują.
+const SHIPPING_DELAY_NOTICE = true;
+const SHIPPING_DELAY_TEXT = "Obecnie wysyłka może potrwać do 10 dni roboczych — sprzęt jest w transporcie.";
+
 type DisplayReview = {
   name: string;
   location?: string;
@@ -117,6 +122,9 @@ export default function ShopClient() {
     toast.success(`${product.name} dodano do koszyka!`, {
       icon: "🛒",
     });
+    if (SHIPPING_DELAY_NOTICE) {
+      toast(SHIPPING_DELAY_TEXT, { icon: "🚚", duration: 6000 });
+    }
   };
 
   return (
@@ -203,6 +211,12 @@ export default function ShopClient() {
                     <Icon name="local_shipping" className="text-[16px]" />
                     Darmowa dostawa i 30-dniowa gwarancja zwrotu
                   </p>
+                  {SHIPPING_DELAY_NOTICE && (
+                    <p className="text-center text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 flex items-center justify-center gap-2">
+                      <Icon name="schedule" className="text-[16px]" />
+                      {SHIPPING_DELAY_TEXT}
+                    </p>
+                  )}
                   <OmnibusNote product={MAIN_PRODUCT} className="text-center" />
                 </div>
                 <div className="pt-6 border-t border-outline-variant/20 grid grid-cols-2 gap-4">

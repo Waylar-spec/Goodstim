@@ -51,7 +51,7 @@ export const PRODUCTS: Product[] = [
     id: "travel-case",
     name: "Etui podróżne GoodStim",
     subtitle: "Twarde etui ochronne",
-    price: 79,
+    price: 55,
     image: "/case/1.avif",
     category: "accessory",
     description: "Wytrzymałe etui do bezpiecznego przechowywania i transportu GoodStim VNS One wraz z akcesoriami.",
