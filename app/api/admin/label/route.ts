@@ -47,7 +47,9 @@ export async function POST(req: NextRequest) {
       }),
     },
     parcels: [{ dimensions: { length: 380, width: 640, height: 410, unit: "mm" }, weight: { amount: 500, unit: "g" } }],
-    service: isPaczkomat ? "inpost_locker_standard" : "inpost_courier_standard",
+    // inpost_courier_standard wymaga podpisanej umowy B2B z InPost — konta bez umowy
+    // (prepaid) używają zamiast tego usługi C2C.
+    service: isPaczkomat ? "inpost_locker_standard" : "inpost_courier_c2c",
     custom_attributes: {
       target_point: order.inpost_locker || undefined,
       sending_method: "dispatch_order",
