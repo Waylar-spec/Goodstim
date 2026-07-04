@@ -11,7 +11,7 @@ import { useCart } from "../lib/cart";
 import { PRODUCTS, getAccessories, formatPrice } from "../lib/products";
 import toast from "react-hot-toast";
 import { trackViewItem, trackAddToCart } from "../lib/analytics";
-import { REVIEWS, AGGREGATE_RATING } from "../lib/reviews";
+import { REVIEWS, computeAggregate, initials } from "../lib/reviews";
 
 const MAIN_PRODUCT = PRODUCTS.find((p) => p.id === "vns-one")!;
 
@@ -22,11 +22,32 @@ const IMGS = {
   t3: "/product.png",
 };
 
+type DisplayReview = {
+  name: string;
+  location?: string;
+  text: string;
+  date: string;
+  rating: number;
+  verified: boolean;
+};
+
+type ApiReview = { reviewer_name: string; rating: number; review_text: string; submitted_at: string };
+
+function formatMonthYear(iso: string) {
+  const formatted = new Intl.DateTimeFormat("pl-PL", { month: "long", year: "numeric" }).format(new Date(iso));
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+}
+
 function Stars({ rating }: { rating: number }) {
+  const full = Math.floor(rating);
+  const hasHalf = rating - full >= 0.5;
   return (
     <div className="flex text-vibrant-teal">
-      {[1, 2, 3, 4].map((i) => <Icon key={i} name="star" fill />)}
-      <Icon name={rating >= 5 ? "star" : "star_half"} fill />
+      {Array.from({ length: 5 }).map((_, i) => {
+        if (i < full) return <Icon key={i} name="star" fill />;
+        if (i === full && hasHalf) return <Icon key={i} name="star_half" fill />;
+        return <Icon key={i} name="star" className="text-outline-variant/30" />;
+      })}
     </div>
   );
 }
@@ -43,6 +64,7 @@ export default function ShopClient() {
   const [reviewName, setReviewName] = useState("");
   const [reviewText, setReviewText] = useState("");
   const [reviewRating, setReviewRating] = useState(5);
+  const [realReviews, setRealReviews] = useState<DisplayReview[]>([]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -58,10 +80,33 @@ export default function ShopClient() {
   }, []);
 
   useEffect(() => {
+    fetch("/api/reviews")
+      .then((r) => r.json())
+      .then((data: { reviews: ApiReview[] }) => {
+        setRealReviews(
+          (data.reviews ?? []).map((r) => ({
+            name: r.reviewer_name,
+            text: r.review_text,
+            date: formatMonthYear(r.submitted_at),
+            rating: r.rating,
+            verified: true,
+          }))
+        );
+      })
+      .catch(() => setRealReviews([]));
+  }, []);
+
+  const allReviews: DisplayReview[] = [
+    ...realReviews,
+    ...REVIEWS.map((r) => ({ ...r, verified: false })),
+  ];
+  const aggregate = computeAggregate(allReviews.map((r) => r.rating));
+
+  useEffect(() => {
     if (reviewModalOpen) return;
-    const timer = setInterval(() => setActiveSlide((s) => (s + 1) % REVIEWS.length), 5000);
+    const timer = setInterval(() => setActiveSlide((s) => (s + 1) % allReviews.length), 5000);
     return () => clearInterval(timer);
-  }, [reviewModalOpen]);
+  }, [reviewModalOpen, allReviews.length]);
 
   const handleAdd = (productId: string) => {
     const product = PRODUCTS.find((p) => p.id === productId);
@@ -136,8 +181,8 @@ export default function ShopClient() {
                 <h1 className="font-montserrat text-[32px] leading-[40px] font-semibold tracking-[-0.01em] text-primary">GoodStim VNS One</h1>
                 <p className="text-lg leading-7 text-on-surface-variant">Najbardziej zaawansowany stymulator nerwu błędnego do codziennej optymalizacji balansu autonomicznego.</p>
                 <div className="flex items-center gap-2">
-                  <Stars rating={5} />
-                  <span className="text-sm text-on-surface-variant">5.0 (50 opinii)</span>
+                  <Stars rating={aggregate.score} />
+                  <span className="text-sm text-on-surface-variant">{aggregate.score.toFixed(1)} ({aggregate.count} opinii)</span>
                 </div>
               </div>
 
@@ -357,10 +402,10 @@ export default function ShopClient() {
               <div className="space-y-4">
                 <h2 className="font-montserrat text-[32px] leading-[40px] font-semibold tracking-[-0.01em] text-primary">Głosy naszej społeczności</h2>
                 <div className="flex items-center gap-6">
-                  <span className="font-montserrat text-[48px] leading-[56px] font-bold text-tech-blue">{AGGREGATE_RATING.score.toFixed(1)}</span>
+                  <span className="font-montserrat text-[48px] leading-[56px] font-bold text-tech-blue">{aggregate.score.toFixed(1)}</span>
                   <div className="space-y-1">
-                    <Stars rating={AGGREGATE_RATING.score} />
-                    <p className="text-xs text-on-surface-variant">{AGGREGATE_RATING.count} opinii z poprzedniej wersji urządzenia</p>
+                    <Stars rating={aggregate.score} />
+                    <p className="text-xs text-on-surface-variant">{aggregate.count} opinii klientów GoodStim</p>
                   </div>
                 </div>
               </div>
@@ -378,30 +423,31 @@ export default function ShopClient() {
                 className="flex transition-transform duration-500 ease-out"
                 style={{ transform: `translateX(-${activeSlide * 100}%)` }}
               >
-                {REVIEWS.map((review) => (
-                  <div key={review.name} className="w-full flex-shrink-0 px-1">
+                {allReviews.map((review, i) => (
+                  <div key={`${review.name}-${i}`} className="w-full flex-shrink-0 px-1">
                     <div className="bg-white rounded-[32px] border border-outline-variant/20 shadow-sm p-8 md:p-10 space-y-6">
                       <div className="flex items-center gap-4">
-                        <Image
-                          src={review.avatar}
-                          alt={review.name}
-                          width={56}
-                          height={56}
-                          className="w-14 h-14 rounded-full object-cover flex-shrink-0"
-                        />
+                        <div className="w-14 h-14 rounded-full bg-soft-mint flex items-center justify-center flex-shrink-0">
+                          <span className="text-secondary font-bold text-lg">{initials(review.name)}</span>
+                        </div>
                         <div>
                           <p className="font-semibold text-primary">{review.name}</p>
-                          <p className="text-xs text-on-surface-variant">{review.location} · {review.date}</p>
+                          <p className="text-xs text-on-surface-variant">
+                            {review.location ? `${review.location} · ` : ""}
+                            {review.date}
+                          </p>
                         </div>
                         <div className="ml-auto">
-                          <Stars rating={5} />
+                          <Stars rating={review.rating} />
                         </div>
                       </div>
                       <p className="text-lg leading-8 text-on-surface-variant">„{review.text}"</p>
-                      <div className="flex items-center gap-2 text-xs text-on-surface-variant/50">
-                        <Icon name="verified" className="text-vibrant-teal text-[16px]" />
-                        Zweryfikowany zakup
-                      </div>
+                      {review.verified && (
+                        <div className="flex items-center gap-2 text-xs text-on-surface-variant/50">
+                          <Icon name="verified" className="text-vibrant-teal text-[16px]" />
+                          Zweryfikowany zakup
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -409,14 +455,14 @@ export default function ShopClient() {
 
               {/* Arrows */}
               <button
-                onClick={() => setActiveSlide((s) => (s - 1 + REVIEWS.length) % REVIEWS.length)}
+                onClick={() => setActiveSlide((s) => (s - 1 + allReviews.length) % allReviews.length)}
                 className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white shadow-md border border-outline-variant/20 flex items-center justify-center text-tech-blue hover:bg-soft-mint transition-colors z-10"
                 aria-label="Poprzednia opinia"
               >
                 <Icon name="chevron_left" />
               </button>
               <button
-                onClick={() => setActiveSlide((s) => (s + 1) % REVIEWS.length)}
+                onClick={() => setActiveSlide((s) => (s + 1) % allReviews.length)}
                 className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white shadow-md border border-outline-variant/20 flex items-center justify-center text-tech-blue hover:bg-soft-mint transition-colors z-10"
                 aria-label="Następna opinia"
               >
@@ -426,7 +472,7 @@ export default function ShopClient() {
 
             {/* Dots */}
             <div className="flex justify-center gap-2">
-              {REVIEWS.map((_, i) => (
+              {allReviews.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setActiveSlide(i)}

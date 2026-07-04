@@ -10,7 +10,9 @@ import BeforeAfterSection from "./BeforeAfterSection";
 import CertsSection from "./CertsSection";
 import FaqSection from "./FaqSection";
 import { useState } from "react";
-import { REVIEWS, AGGREGATE_RATING } from "../lib/reviews";
+import { REVIEWS, computeAggregate, initials } from "../lib/reviews";
+
+const AGGREGATE_RATING = computeAggregate(REVIEWS.map((r) => r.rating));
 
 const BENEFITS = [
   { icon: "energy_savings_leaf", title: "Redukcja stresu", desc: "Obniża poziom kortyzolu i natychmiastowo aktywuje układ przywspółczulny, wyciszając reakcję walki lub ucieczki." },
@@ -198,7 +200,9 @@ export default function HomeClient() {
                   <div className="text-vibrant-teal text-lg tracking-widest leading-none">★★★★★</div>
                   <p className="text-white/90 leading-relaxed text-[15px]">„{r.text}&rdquo;</p>
                   <div className="flex items-center gap-3 pt-2">
-                    <Image src={r.avatar} alt={r.name} width={44} height={44} className="w-11 h-11 rounded-full object-cover flex-shrink-0" />
+                    <div className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+                      <span className="text-vibrant-teal font-bold text-sm">{initials(r.name)}</span>
+                    </div>
                     <div>
                       <p className="font-semibold text-sm">{r.name}</p>
                       <p className="text-white/50 text-xs">{r.location} · {r.date}</p>
