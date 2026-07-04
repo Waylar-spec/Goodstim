@@ -56,5 +56,10 @@ export function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  // Pomijamy statyczne pliki (obrazki, fonty, favicon, robots/sitemap itd.) — i tak są
+  // przepuszczane w kodzie powyżej, więc lepiej w ogóle nie odpalać na nich middleware
+  // (mniej wywołań i Active CPU na Vercel Fluid Compute).
+  matcher: [
+    "/((?!_next/static|_next/image|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico|css|js|mjs|woff|woff2|ttf|map|txt|xml|json)$).*)",
+  ],
 };
