@@ -58,7 +58,7 @@ export default function Footer() {
       </div>
 
       <div className="max-w-[1280px] mx-auto px-6 md:px-16 py-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-on-primary-container">
-        <span>© {new Date().getFullYear()} GoodStim · Wojciech Dymek diagnostyka i leczenie bólu · NIP 7182160692</span>
+        <span>© {new Date().getFullYear()} GoodStim</span>
         <div className="flex gap-6">
           <Link href="/regulamin" className="hover:text-white transition-colors">Regulamin</Link>
           <Link href="/polityka-prywatnosci" className="hover:text-white transition-colors">Polityka prywatności</Link>
