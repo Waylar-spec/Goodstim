@@ -129,12 +129,11 @@ function CheckoutPageInner() {
   function validateBeforePayment(): string | null {
     if (!firstName.trim() || !lastName.trim()) return "Podaj imię i nazwisko.";
     if (!email.trim()) return "Podaj adres e-mail.";
+    if (!phone.trim()) return "Podaj numer telefonu — InPost wymaga go do odbioru/dostawy przesyłki.";
     if (delivery === "courier" && (!address.trim() || !city.trim() || !postalCode.trim()))
       return "Uzupełnij pełny adres dostawy.";
     if (delivery === "inpost" && !selectedLocker)
       return "Wybierz paczkomat z mapy.";
-    if (delivery === "inpost" && !phone.trim())
-      return "Podaj numer telefonu — InPost wyśle na niego kod do odbioru.";
     if (wantInvoice && !companyName.trim()) return "Podaj nazwę firmy do faktury.";
     if (wantInvoice && !nip.trim()) return "Podaj NIP do faktury.";
     if (!termsAccepted) return "Akceptacja Regulaminu jest wymagana.";
@@ -153,13 +152,12 @@ function CheckoutPageInner() {
     if (s === 1) {
       if (!firstName.trim() || !lastName.trim()) return "Podaj imię i nazwisko.";
       if (!email.trim()) return "Podaj adres e-mail.";
+      if (!phone.trim()) return "Podaj numer telefonu — InPost wymaga go do odbioru/dostawy przesyłki.";
     }
     if (s === 2) {
       if (delivery === "courier" && (!address.trim() || !city.trim() || !postalCode.trim()))
         return "Uzupełnij pełny adres dostawy.";
       if (delivery === "inpost" && !selectedLocker) return "Wybierz paczkomat z mapy.";
-      if (delivery === "inpost" && !phone.trim())
-        return "Podaj numer telefonu — InPost wyśle na niego kod do odbioru.";
       if (wantInvoice && !companyName.trim()) return "Podaj nazwę firmy do faktury.";
       if (wantInvoice && !nip.trim()) return "Podaj NIP do faktury.";
     }
@@ -342,9 +340,9 @@ function CheckoutPageInner() {
                   </div>
                   <div className="md:col-span-2 flex flex-col gap-2">
                     <label className="text-sm font-semibold text-on-surface-variant px-1">
-                      Telefon{delivery === "inpost" ? " * (wymagany do odbioru InPost)" : " (opcjonalny)"}
+                      Telefon * (wymagany do odbioru/dostawy InPost)
                     </label>
-                    <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
+                    <input type="tel" required value={phone} onChange={(e) => setPhone(e.target.value)}
                       className="bg-soft-mint rounded-xl px-4 py-3 border-none input-focus-effect transition-all text-on-surface"
                       placeholder="+48 500 000 000" />
                   </div>
