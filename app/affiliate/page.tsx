@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import Image from "next/image";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -37,7 +38,7 @@ const VALUE_PROPS = [
 ];
 
 const STEPS = [
-  { num: "1", title: "Zarejestruj się", desc: "Podaj imię i email w formularzu poniżej. Możesz od razu wybrać własny, łatwy do zapamiętania kod." },
+  { num: "1", title: "Zarejestruj się", desc: "Wypełnij krótki formularz — imię, email i opcjonalnie własny, łatwy do zapamiętania kod." },
   { num: "2", title: "Odbierz link i kod", desc: "Mailem dostajesz link do panelu, swój unikalny link polecający i kod rabatowy — gotowe w minutę." },
   { num: "3", title: "Udostępniaj", desc: "Social media, znajomi, społeczność — gdziekolwiek dotrzesz do ludzi zainteresowanych redukcją stresu i lepszym snem." },
   { num: "4", title: "Zarabiaj", desc: "Prowizja nalicza się automatycznie przy każdej sprzedaży. Wypłatę zgłaszasz od 150 zł zebranej kwoty, przelewem na Twoje konto." },
@@ -46,7 +47,7 @@ const STEPS = [
 const FAQS = [
   {
     q: "Jak dołączyć do programu?",
-    a: "Wypełnij formularz na tej stronie — imię, email i (opcjonalnie) własny kod. Od razu po rejestracji dostaniesz mailem link do panelu afilianta oraz swój unikalny link i kod rabatowy.",
+    a: "Kliknij „Dołącz do programu\" i przejdź przez krótki formularz — imię, email, opcjonalnie własny kod oraz akceptacja regulaminu. Od razu po rejestracji dostaniesz mailem link do panelu afilianta oraz swój unikalny link i kod rabatowy.",
   },
   {
     q: "Kiedy i jak dostanę wypłatę?",
@@ -71,37 +72,7 @@ const FAQS = [
 ] as const;
 
 export default function AffiliatePage() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
-  const [state, setState] = useState<"idle" | "loading" | "done" | "error">("idle");
-  const [error, setError] = useState("");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setState("loading");
-    setError("");
-
-    try {
-      const res = await fetch("/api/affiliate/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, code }),
-      });
-
-      if (res.ok) {
-        setState("done");
-      } else {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error ?? "Coś poszło nie tak");
-        setState("error");
-      }
-    } catch {
-      setError("Coś poszło nie tak. Spróbuj ponownie.");
-      setState("error");
-    }
-  }
 
   return (
     <div className="min-h-screen bg-surface text-on-background font-sans">
@@ -133,7 +104,7 @@ export default function AffiliatePage() {
                 Dołącz do programu partnerskiego GoodStim. Dostajesz unikalny link i kod rabatowy — za każdą sprzedaż z Twojego polecenia otrzymujesz prowizję od 10% do 25%.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 pt-2">
-                <a href="#dolacz" className="px-8 py-4 bg-tech-blue text-white text-sm font-semibold tracking-wide rounded-lg hover:scale-[1.02] transition-all text-center btn-press">
+                <a href="/affiliate/dolacz" className="px-8 py-4 bg-tech-blue text-white text-sm font-semibold tracking-wide rounded-lg hover:scale-[1.02] transition-all text-center btn-press">
                   Dołącz do programu
                 </a>
                 <a href="#jak-to-dziala" className="px-8 py-4 border-2 border-tech-blue text-tech-blue text-sm font-semibold tracking-wide rounded-lg hover:bg-surface-container-low transition-all flex items-center justify-center gap-2">
@@ -154,7 +125,7 @@ export default function AffiliatePage() {
               <p className="text-on-surface-variant leading-relaxed mb-8">
                 Coraz więcej osób szuka sposobów na redukcję stresu i lepszy sen bez tabletek. Stymulacja nerwu błędnego (tVNS) to rosnąca kategoria wellness i biohackingu — dołączasz do czegoś, co dopiero nabiera rozpędu w Polsce.
               </p>
-              <a href="#dolacz" className="inline-flex items-center gap-2 bg-tech-blue text-white font-semibold px-6 py-3.5 rounded-full hover:scale-[1.02] transition-all text-sm">
+              <a href="/affiliate/dolacz" className="inline-flex items-center gap-2 bg-tech-blue text-white font-semibold px-6 py-3.5 rounded-full hover:scale-[1.02] transition-all text-sm">
                 Dołącz do partnerów
                 <Icon name="arrow_forward" className="text-[18px]" />
               </a>
@@ -351,64 +322,22 @@ export default function AffiliatePage() {
           </div>
         </section>
 
-        {/* REGISTRATION FORM */}
-        <section className="py-24 bg-surface-container-lowest" id="dolacz">
-          <div className="max-w-lg mx-auto px-6">
-            <div className="bg-white rounded-[24px] border border-[#E5F6EF] shadow-[0px_4px_20px_rgba(37,37,55,0.04)] p-10">
-              {state === "done" ? (
-                <div className="text-center py-4">
-                  <div className="w-16 h-16 bg-soft-mint rounded-2xl flex items-center justify-center mx-auto mb-6">
-                    <Icon name="mark_email_read" className="text-vibrant-teal text-[28px]" />
-                  </div>
-                  <h2 className="font-montserrat text-xl font-semibold text-primary mb-2">Sprawdź skrzynkę!</h2>
-                  <p className="text-on-surface-variant text-sm">Wysłaliśmy Ci link do panelu afilianta wraz z Twoim unikalnym linkiem polecającym i kodem rabatowym.</p>
-                </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="space-y-5">
-                  <h2 className="font-montserrat text-2xl font-semibold text-primary text-center mb-2">Dołącz teraz</h2>
-                  <p className="text-center text-on-surface-variant text-sm mb-2">Rejestracja zajmuje minutę — zaczynasz zarabiać od razu.</p>
-                  <div>
-                    <label className="block text-sm font-medium text-on-surface mb-2">Imię i nazwisko</label>
-                    <input
-                      type="text"
-                      value={name}
-                      onChange={e => setName(e.target.value)}
-                      required
-                      className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 py-3 text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-vibrant-teal transition-colors"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-on-surface mb-2">Email</label>
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={e => setEmail(e.target.value)}
-                      required
-                      className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 py-3 text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-vibrant-teal transition-colors"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-on-surface mb-2">Twój kod (opcjonalnie)</label>
-                    <input
-                      type="text"
-                      value={code}
-                      onChange={e => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))}
-                      placeholder="np. TWOJEIMIE"
-                      maxLength={20}
-                      className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 py-3 text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-vibrant-teal transition-colors tracking-widest"
-                    />
-                    <p className="text-xs text-on-surface-variant mt-1.5">Zostaw puste, a wygenerujemy kod z Twojego imienia. Ten kod będą podawać ludzie w koszyku.</p>
-                  </div>
-                  {error && <p className="text-red-600 text-sm text-center">{error}</p>}
-                  <button
-                    type="submit"
-                    disabled={state === "loading"}
-                    className="w-full bg-tech-blue hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 text-white font-semibold py-4 rounded-xl transition-all text-base btn-press"
-                  >
-                    {state === "loading" ? "Rejestrowanie..." : "Zostań partnerem →"}
-                  </button>
-                </form>
-              )}
+        {/* CTA */}
+        <section className="py-24">
+          <div className="max-w-[1280px] mx-auto px-6 md:px-16">
+            <div className="bg-tech-blue rounded-[32px] p-12 md:p-16 text-center">
+              <h2 className="font-montserrat text-[28px] md:text-[32px] font-semibold text-white mb-4">
+                Gotowy(-a) zacząć zarabiać?
+              </h2>
+              <p className="text-on-primary-container mb-8 max-w-md mx-auto">
+                Rejestracja zajmuje 2 minuty. Zaraz po niej dostajesz swój link i kod rabatowy.
+              </p>
+              <Link
+                href="/affiliate/dolacz"
+                className="inline-block bg-vibrant-teal text-tech-blue font-bold px-10 py-4 rounded-full hover:scale-105 transition-all"
+              >
+                Dołącz do programu →
+              </Link>
             </div>
           </div>
         </section>

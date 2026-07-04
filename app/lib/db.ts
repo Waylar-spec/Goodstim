@@ -94,6 +94,8 @@ export async function initDb() {
   await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS affiliate_commission_pln NUMERIC(10,2)`;
   await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS affiliate_tier TEXT`;
   await sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS affiliate_payout_status TEXT DEFAULT 'pending'`;
+  await sql`ALTER TABLE affiliates ADD COLUMN IF NOT EXISTS promotion_method TEXT`;
+  await sql`ALTER TABLE affiliates ADD COLUMN IF NOT EXISTS terms_accepted_at TIMESTAMPTZ`;
 
   await sql`
     CREATE TABLE IF NOT EXISTS abandoned_carts (

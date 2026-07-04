@@ -6,10 +6,16 @@ import { Resend } from "resend";
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: NextRequest) {
-  const { name, email, code: customCode } = await req.json();
+  const { name, email, code: customCode, promotionMethod, termsAccepted } = await req.json();
 
   if (!name?.trim() || !email?.trim()) {
     return NextResponse.json({ error: "Podaj imię i email" }, { status: 400 });
+  }
+  if (!promotionMethod?.trim()) {
+    return NextResponse.json({ error: "Wybierz sposób promocji" }, { status: 400 });
+  }
+  if (!termsAccepted) {
+    return NextResponse.json({ error: "Musisz zaakceptować regulamin programu" }, { status: 400 });
   }
 
   const sql = getDb();
@@ -42,8 +48,8 @@ export async function POST(req: NextRequest) {
   const token = crypto.randomUUID();
 
   await sql`
-    INSERT INTO affiliates (code, token, name, email)
-    VALUES (${code}, ${token}, ${name.trim()}, ${email.trim().toLowerCase()})
+    INSERT INTO affiliates (code, token, name, email, promotion_method, terms_accepted_at)
+    VALUES (${code}, ${token}, ${name.trim()}, ${email.trim().toLowerCase()}, ${promotionMethod}, NOW())
   `;
 
   const base = process.env.NEXT_PUBLIC_BASE_URL ?? "https://goodstim.pl";
