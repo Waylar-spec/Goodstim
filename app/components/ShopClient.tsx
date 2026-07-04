@@ -228,10 +228,10 @@ export default function ShopClient() {
               </div>
               <div className="p-8 bg-soft-mint rounded-[32px] flex flex-col justify-between">
                 <div className="space-y-4">
-                  <Icon name="verified_user" className="text-secondary text-4xl" />
-                  <h3 className="font-montserrat text-xl font-semibold">Zestaw elektrod</h3>
+                  <Icon name="water_drop" className="text-secondary text-4xl" />
+                  <h3 className="font-montserrat text-xl font-semibold">Żel przewodzący</h3>
                 </div>
-                <p className="text-on-surface-variant text-sm">Zapas na 3 miesiące użytkowania.</p>
+                <p className="text-on-surface-variant text-sm">Buteleczka na start — wystarczy na pierwsze sesje.</p>
               </div>
             </div>
           </section>

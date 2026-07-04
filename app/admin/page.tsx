@@ -516,6 +516,9 @@ export default function AdminPage() {
                                 {o.delivery_method === "inpost" && (
                                   <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-300">Paczkomat</span>
                                 )}
+                                {o.invoice_type === "invoice" && (
+                                  <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300">🏢 Faktura</span>
+                                )}
                               </div>
                               <p className="text-sm text-gray-300">{o.customer_name} · {o.customer_email}</p>
                               <p className="text-xs text-gray-500 mt-0.5">{new Date(o.created_at).toLocaleString("pl-PL")}</p>
