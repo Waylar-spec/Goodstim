@@ -635,10 +635,10 @@ export default function AdminPage() {
                     </button>
                   </div>
                   <div className="space-y-2 pt-2 border-t border-white/10">
-                    {selected.delivery_method === "inpost" && !selected.tracking_number && (
+                    {!selected.tracking_number && (
                       <button onClick={() => createLabel(selected)} disabled={labelLoading}
                         className="w-full bg-yellow-500 hover:bg-yellow-400 disabled:opacity-50 text-black font-semibold py-2.5 rounded-xl text-sm transition-colors">
-                        {labelLoading ? "Tworzę etykietę…" : "🏷️ Utwórz etykietę InPost"}
+                        {labelLoading ? "Tworzę etykietę…" : `🏷️ Utwórz etykietę InPost (${selected.delivery_method === "inpost" ? "Paczkomat" : "Kurier"})`}
                       </button>
                     )}
                     {selected.shipment_id && (
