@@ -71,7 +71,14 @@ export async function POST(req: NextRequest) {
   );
 
   const data = await res.json();
-  if (!res.ok) return NextResponse.json({ error: data.message ?? "Błąd InPost API", detail: data }, { status: 502 });
+  if (!res.ok) {
+    // InPost przy błędach 422 zwraca message ogólnikowe + details z konkretnymi polami — pokaż oba.
+    const detailsText = data.details
+      ? Object.entries(data.details).map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(", ") : msgs}`).join(" | ")
+      : "";
+    const fullMessage = [data.message ?? "Błąd InPost API", detailsText].filter(Boolean).join(" — ");
+    return NextResponse.json({ error: fullMessage, detail: data }, { status: 502 });
+  }
 
   const tracking = data.tracking_number ?? data.id;
   const shipmentId = String(data.id ?? "");
