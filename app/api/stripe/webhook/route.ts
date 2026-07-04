@@ -203,30 +203,39 @@ export async function POST(req: NextRequest) {
     }
 
     // Faktura / rachunek w Fakturowni + automatyczna wysyłka do klienta
-    await createAndSendInvoice({
-      orderNumber,
-      buyerName: meta.want_invoice === "1" ? (meta.company_name || meta.customer_name || "") : (meta.customer_name ?? ""),
-      buyerEmail: meta.customer_email ?? "",
-      buyerTaxNo: meta.want_invoice === "1" ? (meta.nip || undefined) : undefined,
-      items: items.map((i: { name: string; qty: number; price: number }) => ({ name: i.name, qty: i.qty, price: i.price })),
-      total: totalPln,
-    });
-
-    // Email potwierdzenia do klienta
-    if (meta.customer_email) {
-      await fetch(`${base}/api/email/order`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: meta.customer_email,
-          firstName: (meta.customer_name ?? "Kliencie").split(" ")[0],
-          orderNumber,
-          items,
-          total: totalPln,
-          deliveryMethod: meta.delivery_method ?? "courier",
-          lockerPoint: meta.inpost_locker ?? "",
-        }),
+    // Zabezpieczone try/catch — błąd Fakturowni nie może zablokować maili do klienta i admina poniżej.
+    try {
+      await createAndSendInvoice({
+        orderNumber,
+        buyerName: meta.want_invoice === "1" ? (meta.company_name || meta.customer_name || "") : (meta.customer_name ?? ""),
+        buyerEmail: meta.customer_email ?? "",
+        buyerTaxNo: meta.want_invoice === "1" ? (meta.nip || undefined) : undefined,
+        items: items.map((i: { name: string; qty: number; price: number }) => ({ name: i.name, qty: i.qty, price: i.price })),
+        total: totalPln,
       });
+    } catch (invoiceErr) {
+      console.error("Fakturownia error:", invoiceErr);
+    }
+
+    // Email potwierdzenia do klienta — nie może zablokować maila do admina poniżej.
+    if (meta.customer_email) {
+      try {
+        await fetch(`${base}/api/email/order`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: meta.customer_email,
+            firstName: (meta.customer_name ?? "Kliencie").split(" ")[0],
+            orderNumber,
+            items,
+            total: totalPln,
+            deliveryMethod: meta.delivery_method ?? "courier",
+            lockerPoint: meta.inpost_locker ?? "",
+          }),
+        });
+      } catch (emailErr) {
+        console.error("Customer email error:", emailErr);
+      }
     }
 
     // Powiadomienie dla admina
