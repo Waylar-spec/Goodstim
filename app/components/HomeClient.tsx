@@ -228,7 +228,7 @@ export default function HomeClient() {
                 Gotowy na nową jakość życia?
               </h2>
               <p className="text-lg leading-7 text-on-surface-variant">
-                Dołącz do ponad 10,000 osób, które odzyskały spokój dzięki stymulacji nerwu błędnego GoodStim.
+                Odkryj, jak stymulacja nerwu błędnego może pomóc Ci odzyskać spokój i lepszy sen — z GoodStim.
               </p>
               {newsletterState === "ok" ? (
                 <div className="flex items-center justify-center gap-3 py-5 px-8 bg-vibrant-teal/20 rounded-xl max-w-lg mx-auto">
