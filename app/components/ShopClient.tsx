@@ -6,6 +6,7 @@ import Image from "next/image";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import Icon from "./Icon";
+import OmnibusNote from "./OmnibusNote";
 import { useCart } from "../lib/cart";
 import { PRODUCTS, getAccessories, formatPrice } from "../lib/products";
 import toast from "react-hot-toast";
@@ -142,8 +143,7 @@ export default function ShopClient() {
 
               <div className="p-6 bg-surface-container-lowest border border-outline-variant/20 rounded-[24px] shadow-sm space-y-6">
                 <div className="flex items-baseline gap-2">
-                  <span className="font-montserrat text-[48px] leading-[56px] font-bold text-tech-blue">550 PLN</span>
-                  <span className="text-base text-on-surface-variant line-through">699 PLN</span>
+                  <span className="font-montserrat text-[48px] leading-[56px] font-bold text-tech-blue">{formatPrice(MAIN_PRODUCT.price)}</span>
                 </div>
                 <div className="space-y-4">
                   <button
@@ -158,6 +158,7 @@ export default function ShopClient() {
                     <Icon name="local_shipping" className="text-[16px]" />
                     Darmowa dostawa i 30-dniowa gwarancja zwrotu
                   </p>
+                  <OmnibusNote product={MAIN_PRODUCT} className="text-center" />
                 </div>
                 <div className="pt-6 border-t border-outline-variant/20 grid grid-cols-2 gap-4">
                   {[
@@ -343,6 +344,7 @@ export default function ShopClient() {
                         </button>
                       )}
                     </div>
+                    <OmnibusNote product={acc} />
                   </div>
                 </div>
               ))}
@@ -510,7 +512,7 @@ export default function ShopClient() {
         <div className="bg-surface/95 backdrop-blur-md border-t border-outline-variant/20 px-4 py-3 flex items-center gap-3">
           <div className="flex-1 min-w-0">
             <p className="text-xs text-on-surface-variant">GoodStim VNS One</p>
-            <p className="font-montserrat font-bold text-tech-blue text-lg leading-tight">550 PLN</p>
+            <p className="font-montserrat font-bold text-tech-blue text-lg leading-tight">{formatPrice(MAIN_PRODUCT.price)}</p>
           </div>
           <button
             onClick={() => handleAdd(MAIN_PRODUCT.id)}

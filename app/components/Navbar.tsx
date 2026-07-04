@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -8,15 +9,56 @@ import { useCart } from "../lib/cart";
 import { formatPrice } from "../lib/products";
 
 const NAV_LINKS = [
-  { label: "Sklep", href: "/shop" },
   { label: "Nauka", href: "/the-science" },
   { label: "Blog", href: "/blog" },
   { label: "Opinie", href: "/#reviews" },
 ];
 
+const SHOP_ITEMS = [
+  {
+    name: "GoodStim",
+    subtitle: "Stymulator nerwu błędnego",
+    image: "/product.png",
+    href: "/shop",
+    comingSoon: false,
+  },
+  {
+    name: "Żel przewodzący",
+    subtitle: "Akcesorium do GoodStim",
+    image: "/product.png",
+    href: "/shop",
+    comingSoon: true,
+    locked: true,
+  },
+  {
+    name: "Etui podróżne GoodStim",
+    subtitle: "Akcesorium do GoodStim",
+    image: "/case/1.avif",
+    href: "/shop/etui-podrozne",
+    comingSoon: true,
+    locked: false,
+  },
+];
+
 export default function Navbar() {
   const pathname = usePathname();
   const { items, removeFromCart, setQty, total, count, cartOpen, openCart, closeCart } = useCart();
+  const [shopOpen, setShopOpen] = useState(false);
+  const shopRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (shopRef.current && !shopRef.current.contains(e.target as Node)) {
+        setShopOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  useEffect(() => {
+    setShopOpen(false);
+  }, [pathname]);
 
   return (
     <>
@@ -26,6 +68,83 @@ export default function Navbar() {
             GoodStim
           </Link>
           <div className="hidden md:flex items-center space-x-8">
+            <div
+              ref={shopRef}
+              className="relative"
+              onMouseEnter={() => setShopOpen(true)}
+              onMouseLeave={() => setShopOpen(false)}
+            >
+              <button
+                onClick={() => setShopOpen((o) => !o)}
+                className={`flex items-center gap-1 text-sm font-semibold tracking-wide transition-colors ${
+                  pathname === "/shop"
+                    ? "text-secondary border-b-2 border-secondary pb-1"
+                    : "text-on-surface-variant hover:text-primary"
+                }`}
+              >
+                Sklep
+                <Icon
+                  name="expand_more"
+                  className={`text-[18px] transition-transform ${shopOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+
+              <div
+                className={`absolute left-1/2 -translate-x-1/2 top-full pt-3 transition-all duration-200 ${
+                  shopOpen ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-1 pointer-events-none"
+                }`}
+              >
+                <div className="w-72 bg-white rounded-2xl border border-outline-variant/20 shadow-xl p-3 space-y-1">
+                  {SHOP_ITEMS.map((item) =>
+                    item.locked ? (
+                      <div
+                        key={item.name}
+                        className="flex items-center gap-3 p-2.5 rounded-xl opacity-60 cursor-default"
+                      >
+                        <div className="relative w-11 h-11 rounded-lg overflow-hidden bg-surface-container-low flex-shrink-0">
+                          <Image src={item.image} alt={item.name} fill sizes="44px" className="object-cover grayscale" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-primary truncate">{item.name}</p>
+                          <p className="text-[11px] text-on-surface-variant truncate">{item.subtitle}</p>
+                        </div>
+                        <span className="px-2 py-1 bg-surface-container text-on-surface-variant text-[9px] font-bold uppercase tracking-wider rounded-full flex-shrink-0">
+                          Wkrótce
+                        </span>
+                      </div>
+                    ) : (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        onClick={() => setShopOpen(false)}
+                        className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-surface-container-low transition-colors"
+                      >
+                        <div className="relative w-11 h-11 rounded-lg overflow-hidden bg-surface-container-low flex-shrink-0">
+                          <Image
+                            src={item.image}
+                            alt={item.name}
+                            fill
+                            sizes="44px"
+                            className={`object-cover ${item.comingSoon ? "grayscale" : ""}`}
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-primary truncate">{item.name}</p>
+                          <p className="text-[11px] text-on-surface-variant truncate">{item.subtitle}</p>
+                        </div>
+                        {item.comingSoon ? (
+                          <span className="px-2 py-1 bg-surface-container text-on-surface-variant text-[9px] font-bold uppercase tracking-wider rounded-full flex-shrink-0">
+                            Wkrótce
+                          </span>
+                        ) : (
+                          <Icon name="chevron_right" className="text-[18px] text-on-surface-variant/50 flex-shrink-0" />
+                        )}
+                      </Link>
+                    )
+                  )}
+                </div>
+              </div>
+            </div>
             {NAV_LINKS.map((link) => {
               const isActive = pathname === link.href;
               return (
@@ -44,9 +163,6 @@ export default function Navbar() {
             })}
           </div>
           <div className="flex items-center gap-6">
-            <button className="text-on-surface-variant hover:text-primary transition-colors">
-              <Icon name="person" />
-            </button>
             <button
               className="text-on-surface-variant hover:text-primary transition-colors relative"
               onClick={() => openCart()}
