@@ -54,7 +54,8 @@ export async function POST(req: NextRequest) {
         },
       }),
     },
-    parcels: [{ dimensions: { length: 380, width: 640, height: 410, unit: "mm" }, weight: { amount: 0.5, unit: "kg" } }],
+    // Gabaryt A (najmniejsza skrytka paczkomatowa): 8x38x64 cm.
+    parcels: [{ dimensions: { length: 380, width: 640, height: 80, unit: "mm" }, weight: { amount: 0.5, unit: "kg" } }],
     // inpost_courier_standard wymaga podpisanej umowy B2B z InPost — konta bez umowy
     // (prepaid) używają zamiast tego usługi C2C.
     service: isPaczkomat ? "inpost_locker_standard" : "inpost_courier_c2c",
