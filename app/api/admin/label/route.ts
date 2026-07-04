@@ -14,6 +14,13 @@ function splitAddress(addressLine1: string) {
   return { street: addressLine1.trim(), building_number: "1" };
 }
 
+// ShipX dla usług kurierskich (C2C) wymaga first_name/last_name osobno — samo "name" nie wystarcza,
+// oferta zostaje odrzucona jako "unavailable" (receiver_first_name_required itp.).
+function splitName(fullName: string) {
+  const parts = fullName.trim().split(/\s+/);
+  return { first_name: parts[0] ?? fullName, last_name: parts.slice(1).join(" ") || parts[0] || fullName };
+}
+
 export async function POST(req: NextRequest) {
   if (!await isAuthed()) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -35,6 +42,7 @@ export async function POST(req: NextRequest) {
   const payload = {
     receiver: {
       name: order.customer_name,
+      ...splitName(order.customer_name ?? ""),
       email: order.customer_email,
       phone: order.customer_phone ?? "",
       ...(isPaczkomat ? {} : {
@@ -80,25 +88,38 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: fullMessage, detail: data }, { status: 502 });
   }
 
-  const tracking = data.tracking_number ?? data.id;
   const shipmentId = String(data.id ?? "");
-  await sql`UPDATE orders SET tracking_number = ${tracking}, shipment_id = ${shipmentId}, status = 'shipped', updated_at = NOW() WHERE id = ${order_id}`;
 
-  // Wyślij email z numerem śledzenia do klienta
-  if (order.customer_email) {
-    const base = process.env.NEXT_PUBLIC_BASE_URL ?? "";
-    await fetch(`${base}/api/email/tracking`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: order.customer_email,
-        firstName: (order.customer_name ?? "Kliencie").split(" ")[0],
-        orderNumber: order.order_number,
-        trackingNumber: tracking,
-        deliveryMethod: order.delivery_method,
-      }),
-    }).catch(e => console.error("Tracking email error:", e));
+  // ShipX jest asynchroniczne — przy tworzeniu tracking_number zwykle jeszcze nie istnieje
+  // (status "created"/"offers_prepared"). Dopóki go nie ma, nie oznaczaj "wysłane" i nie wysyłaj
+  // klientowi fałszywego numeru — czekamy aż /api/admin/label/check potwierdzi prawdziwy tracking.
+  if (data.tracking_number) {
+    await sql`UPDATE orders SET tracking_number = ${data.tracking_number}, shipment_id = ${shipmentId}, status = 'shipped', updated_at = NOW() WHERE id = ${order_id}`;
+
+    if (order.customer_email) {
+      const base = process.env.NEXT_PUBLIC_BASE_URL ?? "";
+      await fetch(`${base}/api/email/tracking`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: order.customer_email,
+          firstName: (order.customer_name ?? "Kliencie").split(" ")[0],
+          orderNumber: order.order_number,
+          trackingNumber: data.tracking_number,
+          deliveryMethod: order.delivery_method,
+        }),
+      }).catch(e => console.error("Tracking email error:", e));
+    }
+  } else {
+    await sql`UPDATE orders SET shipment_id = ${shipmentId}, updated_at = NOW() WHERE id = ${order_id}`;
   }
 
-  return NextResponse.json({ ok: true, tracking_number: tracking, shipment_id: shipmentId, shipment: data });
+  return NextResponse.json({
+    ok: true,
+    tracking_number: data.tracking_number ?? null,
+    pending: !data.tracking_number,
+    shipment_id: shipmentId,
+    shipment_status: data.status,
+    shipment: data,
+  });
 }

@@ -268,11 +268,50 @@ export default function AdminPage() {
     });
     const data = await res.json();
     if (res.ok) {
-      setLabelMsg(`✅ Etykieta utworzona. Numer: ${data.tracking_number}`);
+      setLabelMsg(data.pending
+        ? "⏳ Przesyłka utworzona, InPost jeszcze przetwarza ofertę. Kliknij \"Sprawdź status\" za chwilę."
+        : `✅ Etykieta utworzona. Numer: ${data.tracking_number}`);
       load();
     } else {
       setLabelMsg(`❌ ${data.error}`);
     }
+    setLabelLoading(false);
+  }
+
+  async function checkLabelStatus(order: Order) {
+    setLabelLoading(true);
+    setLabelMsg("");
+    const res = await fetch("/api/admin/label/check", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ order_id: order.id }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      if (data.ready) {
+        setLabelMsg(`✅ Gotowe! Numer śledzenia: ${data.tracking_number}`);
+        load();
+      } else {
+        const reasons = data.unavailable_reasons?.length ? ` — ${data.unavailable_reasons.join(", ")}` : "";
+        setLabelMsg(`⏳ Jeszcze nie gotowe (status: ${data.shipment_status})${reasons}`);
+      }
+    } else {
+      setLabelMsg(`❌ ${data.error}`);
+    }
+    setLabelLoading(false);
+  }
+
+  async function resetShipment(order: Order) {
+    if (!confirm(`Zresetować przesyłkę InPost dla ${order.order_number}? Stare shipment_id/tracking zostaną wyczyszczone, będzie można utworzyć nową etykietę.`)) return;
+    setLabelLoading(true);
+    setLabelMsg("");
+    await fetch("/api/admin/label/reset", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ order_id: order.id }),
+    });
+    setLabelMsg("↺ Przesyłka zresetowana — możesz utworzyć nową etykietę.");
+    load();
     setLabelLoading(false);
   }
 
@@ -342,16 +381,20 @@ export default function AdminPage() {
     const prevTo = new Date(from.getTime() - 1);
     const prevFrom = new Date(prevTo.getTime() - spanMs);
 
+    // cur/prev = wszystkie zamówienia w okresie (włącznie z anulowanymi) — potrzebne do wykresu statusów.
     const cur = orders.filter(o => { const d = new Date(o.created_at); return d >= from && d <= to; });
     const prev = orders.filter(o => { const d = new Date(o.created_at); return d >= prevFrom && d <= prevTo; });
+    // curValid/prevValid = bez anulowanych — do wszystkiego co liczy przychód/sprzedaż.
+    const curValid = cur.filter(o => o.status !== "cancelled");
+    const prevValid = prev.filter(o => o.status !== "cancelled");
 
-    const revenue = cur.reduce((s, o) => s + parseFloat(o.total_pln), 0);
-    const prevRevenue = prev.reduce((s, o) => s + parseFloat(o.total_pln), 0);
-    const count = cur.length;
-    const prevCount = prev.length;
+    const revenue = curValid.reduce((s, o) => s + parseFloat(o.total_pln), 0);
+    const prevRevenue = prevValid.reduce((s, o) => s + parseFloat(o.total_pln), 0);
+    const count = curValid.length;
+    const prevCount = prevValid.length;
     const aov = count > 0 ? revenue / count : 0;
     const prevAov = prevCount > 0 ? prevRevenue / prevCount : 0;
-    const pending = cur.filter(o => o.status === "new").length;
+    const pending = curValid.filter(o => o.status === "new").length;
 
     // Daily buckets
     const dayMs = 24 * 60 * 60 * 1000;
@@ -363,7 +406,7 @@ export default function AdminPage() {
     if (groupByWeek) {
       // group by ISO week
       const weekMap: Record<string, { revenue: number; count: number; label: string }> = {};
-      cur.forEach(o => {
+      curValid.forEach(o => {
         const d = new Date(o.created_at);
         const week = `${d.getFullYear()}-W${String(Math.ceil((d.getDate() - d.getDay() + 10) / 7)).padStart(2, "0")}`;
         if (!weekMap[week]) weekMap[week] = { revenue: 0, count: 0, label: `Tydz. ${week.split("-W")[1]}` };
@@ -377,26 +420,26 @@ export default function AdminPage() {
       const d = new Date(from);
       while (d <= to) {
         const key = d.toISOString().slice(0, 10);
-        const dayOrders = cur.filter(o => o.created_at.slice(0, 10) === key);
+        const dayOrders = curValid.filter(o => o.created_at.slice(0, 10) === key);
         const shortLabel = `${d.getDate()}.${d.getMonth() + 1}`;
         buckets.push({ label: shortLabel, date: key, revenue: dayOrders.reduce((s, o) => s + parseFloat(o.total_pln), 0), count: dayOrders.length });
         d.setDate(d.getDate() + 1);
       }
     }
 
-    // Status breakdown
+    // Status breakdown — jedyne miejsce gdzie celowo liczymy też anulowane, żeby było je widać na wykresie.
     const byStatus: Record<string, number> = {};
     cur.forEach(o => { byStatus[o.status] = (byStatus[o.status] ?? 0) + 1; });
 
     // Delivery breakdown
     const byDelivery = {
-      inpost: cur.filter(o => o.delivery_method === "inpost").length,
-      courier: cur.filter(o => o.delivery_method !== "inpost").length,
+      inpost: curValid.filter(o => o.delivery_method === "inpost").length,
+      courier: curValid.filter(o => o.delivery_method !== "inpost").length,
     };
 
     // Top products
     const productMap: Record<string, { qty: number; revenue: number }> = {};
-    cur.forEach(o => {
+    curValid.forEach(o => {
       (o.items || []).forEach(item => {
         if (!productMap[item.name]) productMap[item.name] = { qty: 0, revenue: 0 };
         productMap[item.name].qty += item.qty ?? 1;
@@ -410,7 +453,7 @@ export default function AdminPage() {
 
     // Best day of week
     const dow: Record<number, { revenue: number; count: number }> = {};
-    cur.forEach(o => {
+    curValid.forEach(o => {
       const d = new Date(o.created_at).getDay();
       if (!dow[d]) dow[d] = { revenue: 0, count: 0 };
       dow[d].revenue += parseFloat(o.total_pln);
@@ -460,7 +503,7 @@ export default function AdminPage() {
               {[
                 { label: "Wszystkich zamówień", value: orders.length },
                 { label: "Nowych (do wysyłki)", value: orders.filter(o => o.status === "new").length, highlight: orders.filter(o => o.status === "new").length > 0 },
-                { label: "Łączny przychód", value: `${orders.reduce((s, o) => s + parseFloat(o.total_pln), 0).toFixed(2)} PLN` },
+                { label: "Łączny przychód", value: `${orders.filter(o => o.status !== "cancelled").reduce((s, o) => s + parseFloat(o.total_pln), 0).toFixed(2)} PLN` },
               ].map(s => (
                 <div key={s.label} className={`rounded-2xl p-5 border ${s.highlight ? "bg-blue-600/10 border-blue-500/30" : "bg-[#111827] border-white/10"}`}>
                   <p className="text-xs text-gray-400 mb-1">{s.label}</p>
@@ -635,13 +678,25 @@ export default function AdminPage() {
                     </button>
                   </div>
                   <div className="space-y-2 pt-2 border-t border-white/10">
-                    {!selected.tracking_number && (
+                    {!selected.shipment_id && !selected.tracking_number && (
                       <button onClick={() => createLabel(selected)} disabled={labelLoading}
                         className="w-full bg-yellow-500 hover:bg-yellow-400 disabled:opacity-50 text-black font-semibold py-2.5 rounded-xl text-sm transition-colors">
                         {labelLoading ? "Tworzę etykietę…" : `🏷️ Utwórz etykietę InPost (${selected.delivery_method === "inpost" ? "Paczkomat" : "Kurier"})`}
                       </button>
                     )}
-                    {selected.shipment_id && (
+                    {selected.shipment_id && !selected.tracking_number && (
+                      <>
+                        <button onClick={() => checkLabelStatus(selected)} disabled={labelLoading}
+                          className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors">
+                          {labelLoading ? "Sprawdzam…" : "🔄 Sprawdź status przesyłki"}
+                        </button>
+                        <button onClick={() => resetShipment(selected)} disabled={labelLoading}
+                          className="w-full bg-transparent hover:bg-red-600/10 disabled:opacity-50 text-red-400 border border-red-600/30 font-semibold py-2 rounded-xl text-xs transition-colors">
+                          ↺ Zresetuj i spróbuj ponownie
+                        </button>
+                      </>
+                    )}
+                    {selected.tracking_number && (
                       <a href={`/api/admin/label/download?order_id=${selected.id}`} target="_blank" rel="noreferrer"
                         className="w-full block text-center bg-green-600 hover:bg-green-500 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors">
                         ⬇️ Pobierz etykietę (PDF)
