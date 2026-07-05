@@ -98,6 +98,22 @@ export async function initDb() {
   await sql`ALTER TABLE affiliates ADD COLUMN IF NOT EXISTS terms_accepted_at TIMESTAMPTZ`;
 
   await sql`
+    CREATE TABLE IF NOT EXISTS return_requests (
+      id SERIAL PRIMARY KEY,
+      order_id INTEGER REFERENCES orders(id),
+      order_number TEXT NOT NULL,
+      customer_email TEXT NOT NULL,
+      reason TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'requested',
+      shipment_id TEXT,
+      tracking_number TEXT,
+      refunded_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
+
+  await sql`
     CREATE TABLE IF NOT EXISTS abandoned_carts (
       id SERIAL PRIMARY KEY,
       token TEXT UNIQUE NOT NULL,

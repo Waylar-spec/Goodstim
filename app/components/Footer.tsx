@@ -46,7 +46,7 @@ export default function Footer() {
             <ul className="space-y-4">
               <li><Link className="text-on-primary-container hover:text-white transition-colors text-sm" href="/regulamin">Regulamin sklepu</Link></li>
               <li><Link className="text-on-primary-container hover:text-white transition-colors text-sm" href="/polityka-prywatnosci">Polityka prywatności</Link></li>
-              <li><Link className="text-on-primary-container hover:text-white transition-colors text-sm" href="/regulamin#zwroty">Zwroty i reklamacje</Link></li>
+              <li><Link className="text-on-primary-container hover:text-white transition-colors text-sm" href="/zwroty">Zwroty i reklamacje</Link></li>
               <li>
                 <a className="text-on-primary-container hover:text-white transition-colors text-sm" href="mailto:kontakt@goodstim.pl">
                   kontakt@goodstim.pl

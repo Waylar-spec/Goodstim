@@ -108,7 +108,7 @@ export default function AdminPage() {
   const [page, setPage] = useState(1);
   const [notesDraft, setNotesDraft] = useState("");
   const [notesSaving, setNotesSaving] = useState(false);
-  const [activeMainTab, setActiveMainTab] = useState<"orders" | "analytics" | "reviews" | "affiliates" | "carts">("orders");
+  const [activeMainTab, setActiveMainTab] = useState<"orders" | "analytics" | "reviews" | "affiliates" | "carts" | "returns">("orders");
   const [period, setPeriod] = useState<"7d" | "30d" | "90d" | "custom">("30d");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
@@ -240,12 +240,67 @@ export default function AdminPage() {
     setCartsLoading(false);
   }
 
+  type ReturnRequest = {
+    id: number; order_id: number; order_number: string; customer_email: string; customer_name: string | null;
+    total_pln: string | null; reason: string; status: string; shipment_id: string | null; tracking_number: string | null;
+    created_at: string;
+  };
+  const [returns, setReturns] = useState<ReturnRequest[]>([]);
+  const [returnsLoading, setReturnsLoading] = useState(false);
+  const [returnsError, setReturnsError] = useState(false);
+  const [returnsBusyId, setReturnsBusyId] = useState<number | null>(null);
+
+  async function loadReturns() {
+    setReturnsLoading(true);
+    setReturnsError(false);
+    const res = await fetch("/api/admin/returns");
+    if (res.ok) {
+      const data = await res.json();
+      setReturns(data.returns ?? []);
+    } else {
+      setReturnsError(true);
+    }
+    setReturnsLoading(false);
+  }
+
+  async function checkReturnLabel(id: number) {
+    setReturnsBusyId(id);
+    try {
+      const res = await fetch("/api/admin/returns/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(`Błąd: ${data.error ?? "nieznany"}`);
+      } else if (data.ready) {
+        alert("Etykieta wysłana do klienta mailem!");
+      } else {
+        alert(`Jeszcze niegotowe (status: ${data.shipment_status ?? "?"}).${data.unavailable_reasons?.length ? " Powody: " + data.unavailable_reasons.join(", ") : ""}`);
+      }
+    } finally {
+      setReturnsBusyId(null);
+      loadReturns();
+    }
+  }
+
+  async function setReturnStatus(id: number, status: string) {
+    await fetch("/api/admin/returns/status", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, status }),
+    });
+    setReturns(r => r.map(x => x.id === id ? { ...x, status } : x));
+  }
+
   useEffect(() => { load(); }, []);
 
   useEffect(() => {
     if (activeMainTab === "reviews") loadReviews();
     if (activeMainTab === "affiliates") loadAffiliates();
     if (activeMainTab === "carts") loadCarts();
+    if (activeMainTab === "returns") loadReturns();
   }, [activeMainTab]);
 
   async function setStatus(id: number, status: string) {
@@ -474,13 +529,13 @@ export default function AdminPage() {
           <span className="text-xs bg-blue-600 px-2 py-0.5 rounded-full">Admin</span>
           {/* Main tabs */}
           <div className="flex gap-1 ml-4">
-            {(["orders", "analytics", "reviews", "affiliates", "carts"] as const).map(t => (
+            {(["orders", "analytics", "reviews", "affiliates", "carts", "returns"] as const).map(t => (
               <button
                 key={t}
                 onClick={() => setActiveMainTab(t)}
                 className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors ${activeMainTab === t ? "bg-white/10 text-white" : "text-gray-400 hover:text-white"}`}
               >
-                {t === "orders" ? "Zamówienia" : t === "analytics" ? "Analityka" : t === "reviews" ? `Opinie${dbReviews.filter(r => r.status === "pending_approval").length > 0 ? ` (${dbReviews.filter(r => r.status === "pending_approval").length})` : ""}` : t === "affiliates" ? "Afiliacja" : "Porzucone koszyki"}
+                {t === "orders" ? "Zamówienia" : t === "analytics" ? "Analityka" : t === "reviews" ? `Opinie${dbReviews.filter(r => r.status === "pending_approval").length > 0 ? ` (${dbReviews.filter(r => r.status === "pending_approval").length})` : ""}` : t === "affiliates" ? "Afiliacja" : t === "carts" ? "Porzucone koszyki" : `Zwroty${returns.filter(r => r.status === "requested").length > 0 ? ` (${returns.filter(r => r.status === "requested").length})` : ""}`}
               </button>
             ))}
           </div>
@@ -1179,6 +1234,99 @@ export default function AdminPage() {
                           <p className="text-xs text-gray-500">Wartość</p>
                           <p className="text-lg font-bold text-teal-400">{parseFloat(c.total_pln).toFixed(2)} zł</p>
                         </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeMainTab === "returns" && (
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-bold text-white">Zwroty</h2>
+              <button onClick={loadReturns} className="text-xs text-gray-400 hover:text-white border border-white/10 px-3 py-1.5 rounded-lg transition-colors">
+                ↻ Odśwież
+              </button>
+            </div>
+
+            {returnsLoading ? (
+              <p className="text-gray-500 text-sm">Ładowanie...</p>
+            ) : returnsError ? (
+              <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-6 text-center">
+                <p className="text-red-400 text-sm font-semibold">Nie udało się wczytać zgłoszeń zwrotu (błąd serwera lub sesja wygasła). Odśwież stronę.</p>
+              </div>
+            ) : returns.length === 0 ? (
+              <div className="bg-[#111827] border border-white/10 rounded-2xl p-12 text-center">
+                <p className="text-4xl mb-3">↩️</p>
+                <p className="text-gray-400 text-sm">Brak zgłoszeń zwrotu.<br/>Klienci mogą zgłosić zwrot na stronie /zwroty.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {returns.map(r => {
+                  const statusLabel: Record<string, string> = {
+                    requested: "Etykieta w przygotowaniu",
+                    label_sent: "Etykieta wysłana",
+                    received: "Paczka odebrana",
+                    refunded: "Zwrócono pieniądze",
+                    rejected: "Odrzucono",
+                  };
+                  const statusColor: Record<string, string> = {
+                    requested: "bg-yellow-500/20 text-yellow-400",
+                    label_sent: "bg-blue-500/20 text-blue-400",
+                    received: "bg-purple-500/20 text-purple-400",
+                    refunded: "bg-green-500/20 text-green-400",
+                    rejected: "bg-red-500/20 text-red-400",
+                  };
+                  return (
+                    <div key={r.id} className="bg-[#111827] border border-white/10 rounded-2xl p-5">
+                      <div className="flex items-start justify-between gap-4 mb-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-3 mb-1">
+                            <span className="font-semibold text-white text-sm">#{r.order_number}</span>
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${statusColor[r.status] ?? "bg-gray-500/20 text-gray-400"}`}>
+                              {statusLabel[r.status] ?? r.status}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-500">{r.customer_name ?? "—"} · {r.customer_email}</p>
+                          <p className="text-xs text-gray-500 mt-1">Powód: {r.reason}</p>
+                          {r.tracking_number && <p className="text-xs text-gray-500 mt-1">Nr śledzenia: {r.tracking_number}</p>}
+                          <p className="text-xs text-gray-600 mt-1">Zgłoszono: {new Date(r.created_at).toLocaleString("pl-PL")}</p>
+                        </div>
+                        {r.total_pln && (
+                          <div className="text-right shrink-0">
+                            <p className="text-xs text-gray-500">Wartość</p>
+                            <p className="text-lg font-bold text-teal-400">{parseFloat(r.total_pln).toFixed(2)} zł</p>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-2 pt-3 border-t border-white/10">
+                        {r.status === "requested" && (
+                          <button
+                            onClick={() => checkReturnLabel(r.id)}
+                            disabled={returnsBusyId === r.id}
+                            className="text-xs bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white px-3 py-1.5 rounded-lg font-semibold transition-colors"
+                          >
+                            {returnsBusyId === r.id ? "Sprawdzanie..." : "🔄 Sprawdź i wyślij etykietę"}
+                          </button>
+                        )}
+                        {r.status === "label_sent" && (
+                          <button onClick={() => setReturnStatus(r.id, "received")} className="text-xs bg-purple-600 hover:bg-purple-500 text-white px-3 py-1.5 rounded-lg font-semibold transition-colors">
+                            📦 Oznacz jako odebrane
+                          </button>
+                        )}
+                        {(r.status === "label_sent" || r.status === "received") && (
+                          <button onClick={() => setReturnStatus(r.id, "refunded")} className="text-xs bg-green-600 hover:bg-green-500 text-white px-3 py-1.5 rounded-lg font-semibold transition-colors">
+                            💸 Oznacz jako zwrócone (po zwrocie w Stripe)
+                          </button>
+                        )}
+                        {r.status !== "rejected" && r.status !== "refunded" && (
+                          <button onClick={() => setReturnStatus(r.id, "rejected")} className="text-xs text-red-400 hover:text-red-300 border border-red-500/30 px-3 py-1.5 rounded-lg font-semibold transition-colors">
+                            ✕ Odrzuć
+                          </button>
+                        )}
                       </div>
                     </div>
                   );
