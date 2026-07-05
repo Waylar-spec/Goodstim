@@ -40,10 +40,60 @@ const SHOP_ITEMS = [
   },
 ];
 
+function ShopItemRow({ item, onNavigate }: { item: (typeof SHOP_ITEMS)[number]; onNavigate: () => void }) {
+  const thumb = (
+    <div className="relative w-11 h-11 rounded-lg overflow-hidden bg-surface-container-low flex-shrink-0">
+      <Image
+        src={item.image}
+        alt={item.name}
+        fill
+        sizes="44px"
+        className={`object-cover ${item.comingSoon ? "grayscale" : ""}`}
+      />
+    </div>
+  );
+  const text = (
+    <div className="flex-1 min-w-0">
+      <p className="text-sm font-semibold text-primary truncate">{item.name}</p>
+      <p className="text-[11px] text-on-surface-variant truncate">{item.subtitle}</p>
+    </div>
+  );
+  const badge = item.comingSoon ? (
+    <span className="px-2 py-1 bg-surface-container text-on-surface-variant text-[9px] font-bold uppercase tracking-wider rounded-full flex-shrink-0">
+      Wkrótce
+    </span>
+  ) : (
+    <Icon name="chevron_right" className="text-[18px] text-on-surface-variant/50 flex-shrink-0" />
+  );
+
+  if (item.locked) {
+    return (
+      <div className="flex items-center gap-3 p-2.5 rounded-xl opacity-60 cursor-default">
+        {thumb}
+        {text}
+        {badge}
+      </div>
+    );
+  }
+
+  return (
+    <Link
+      href={item.href}
+      onClick={onNavigate}
+      className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-surface-container-low transition-colors"
+    >
+      {thumb}
+      {text}
+      {badge}
+    </Link>
+  );
+}
+
 export default function Navbar() {
   const pathname = usePathname();
   const { items, removeFromCart, setQty, total, count, cartOpen, openCart, closeCart } = useCart();
   const [shopOpen, setShopOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const shopRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -58,6 +108,7 @@ export default function Navbar() {
 
   useEffect(() => {
     setShopOpen(false);
+    setMobileMenuOpen(false);
   }, [pathname]);
 
   return (
@@ -95,53 +146,9 @@ export default function Navbar() {
                 }`}
               >
                 <div className="w-72 bg-white rounded-2xl border border-outline-variant/20 shadow-xl p-3 space-y-1">
-                  {SHOP_ITEMS.map((item) =>
-                    item.locked ? (
-                      <div
-                        key={item.name}
-                        className="flex items-center gap-3 p-2.5 rounded-xl opacity-60 cursor-default"
-                      >
-                        <div className="relative w-11 h-11 rounded-lg overflow-hidden bg-surface-container-low flex-shrink-0">
-                          <Image src={item.image} alt={item.name} fill sizes="44px" className="object-cover grayscale" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-primary truncate">{item.name}</p>
-                          <p className="text-[11px] text-on-surface-variant truncate">{item.subtitle}</p>
-                        </div>
-                        <span className="px-2 py-1 bg-surface-container text-on-surface-variant text-[9px] font-bold uppercase tracking-wider rounded-full flex-shrink-0">
-                          Wkrótce
-                        </span>
-                      </div>
-                    ) : (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        onClick={() => setShopOpen(false)}
-                        className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-surface-container-low transition-colors"
-                      >
-                        <div className="relative w-11 h-11 rounded-lg overflow-hidden bg-surface-container-low flex-shrink-0">
-                          <Image
-                            src={item.image}
-                            alt={item.name}
-                            fill
-                            sizes="44px"
-                            className={`object-cover ${item.comingSoon ? "grayscale" : ""}`}
-                          />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-primary truncate">{item.name}</p>
-                          <p className="text-[11px] text-on-surface-variant truncate">{item.subtitle}</p>
-                        </div>
-                        {item.comingSoon ? (
-                          <span className="px-2 py-1 bg-surface-container text-on-surface-variant text-[9px] font-bold uppercase tracking-wider rounded-full flex-shrink-0">
-                            Wkrótce
-                          </span>
-                        ) : (
-                          <Icon name="chevron_right" className="text-[18px] text-on-surface-variant/50 flex-shrink-0" />
-                        )}
-                      </Link>
-                    )
-                  )}
+                  {SHOP_ITEMS.map((item) => (
+                    <ShopItemRow key={item.name} item={item} onNavigate={() => setShopOpen(false)} />
+                  ))}
                 </div>
               </div>
             </div>
@@ -175,9 +182,69 @@ export default function Navbar() {
                 </span>
               )}
             </button>
+            <button
+              className="md:hidden text-on-surface-variant hover:text-primary transition-colors"
+              onClick={() => setMobileMenuOpen((o) => !o)}
+              aria-label={mobileMenuOpen ? "Zamknij menu" : "Otwórz menu"}
+            >
+              <Icon name={mobileMenuOpen ? "close" : "menu"} />
+            </button>
           </div>
         </div>
       </nav>
+
+      {/* Mobile menu overlay */}
+      <div
+        className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-[65] transition-opacity duration-300 md:hidden ${
+          mobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={() => setMobileMenuOpen(false)}
+      />
+
+      {/* Mobile menu panel */}
+      <div
+        className={`fixed top-0 right-0 h-full w-[85%] max-w-sm z-[70] bg-white shadow-[0px_0px_40px_rgba(0,0,0,0.15)] transition-transform duration-300 md:hidden flex flex-col ${
+          mobileMenuOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <div className="flex items-center justify-between p-6 border-b border-outline-variant/20">
+          <span className="font-montserrat text-xl font-bold text-primary">Menu</span>
+          <button
+            onClick={() => setMobileMenuOpen(false)}
+            className="text-on-surface-variant hover:text-primary transition-colors"
+            aria-label="Zamknij menu"
+          >
+            <Icon name="close" />
+          </button>
+        </div>
+        <div className="flex-grow overflow-y-auto p-6 space-y-8">
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-widest text-on-surface-variant">Sklep</p>
+            <div className="space-y-1">
+              {SHOP_ITEMS.map((item) => (
+                <ShopItemRow key={item.name} item={item} onNavigate={() => setMobileMenuOpen(false)} />
+              ))}
+            </div>
+          </div>
+          <div className="space-y-1 pt-2 border-t border-outline-variant/10">
+            {NAV_LINKS.map((link) => {
+              const isActive = pathname === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`block py-3 text-base font-semibold transition-colors ${
+                    isActive ? "text-secondary" : "text-primary hover:text-secondary"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </div>
 
       {/* Overlay */}
       <div
