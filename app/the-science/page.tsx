@@ -42,8 +42,8 @@ const articleJsonLd = {
   keywords: "stymulator nerwu błędnego, tVNS, VNS, HRV, stymulacja nerwu błędnego",
 };
 
-const ANATOMY_IMG = "https://lh3.googleusercontent.com/aida-public/AB6AXuBoiq0tQ8jV_aiZHX5MRGmWLB_bQzpcFhJjOl2XTW5mqitKhEB3guouzwzEDpOm9zcmVy4hiWJCrHhkt4YVkdWIMr6pKgO_hIhsJS1OaQ5SCthoMM0amwiqWr3nNnLlR60OQV-w3MJlXbJJeQQFFSG_shgMmgAt9zLDY33AKr8H6fFT3MT9oid-FzsPtve0AHo42_3OJKYw-xnN16RW9K15Zr15DrIa3D25kEo69QN6Z6NXYQNKf-aZDUL_gQeA6L5ymNYgLBf-ZQ";
-const SLEEP_IMG = "https://lh3.googleusercontent.com/aida-public/AB6AXuDZo_-l9CHVfsDUw099QRjhxZJo59_sJELizcbS289WnTHwUG4PLYh_ox-G_Qeb4H_xsJla_9my_rBnn9Jw_jPE5ftauEycwZSc328H7SaKayTHWIq5N0wcwPWf3DODLOT-8HGPMeVAlwMsPDGab8RMHdX_KHb-LaadxTtoG8MFIbb2UY3H5y9bmpvei0bvGPc9wCnahnxavG_URxIuTFo-WonxrriyFLai1EK9IqgXSQIQqDf-K-PYaAs2xSsi_6uNiTbizxG4Ng";
+const ANATOMY_IMG = "/polecenia/1.png";
+const SLEEP_IMG = "/polecenia/Gemini_Generated_Image_wfd2piwfd2piwfd2.png";
 
 const ANATOMY_LEFT = [
   { icon: "psychology", label: "Mózg", title: "Kontrola Stanu", desc: "Przekazuje sygnały do jądra pasma samotnego, modulując reakcje stresowe i nastrój." },
