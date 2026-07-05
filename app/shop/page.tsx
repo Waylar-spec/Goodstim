@@ -5,7 +5,7 @@ import { REVIEWS, AGGREGATE_RATING } from "../lib/reviews";
 export const metadata: Metadata = {
   title: "Kup GoodStim VNS One — Stymulator Nerwu Błędnego · 550 PLN",
   description:
-    "GoodStim VNS One to profesjonalny stymulator nerwu błędnego z 50 poziomami intensywności. iOS i Android. Darmowa dostawa, 30 dni gwarancji zwrotu. Sprawdź cenę.",
+    "GoodStim VNS One to profesjonalny stymulator nerwu błędnego z 50 poziomami intensywności. iOS i Android. Darmowa dostawa, 14 dni gwarancji zwrotu. Sprawdź cenę.",
   keywords: [
     "stymulator nerwu błędnego cena",
     "kup urządzenie VNS",

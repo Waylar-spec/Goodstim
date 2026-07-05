@@ -4,7 +4,7 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const ADMIN_EMAIL = "wojtekdymek95@gmail.com";
-const RETURN_WINDOW_DAYS = 30;
+const RETURN_WINDOW_DAYS = 14;
 
 function splitName(fullName: string) {
   const parts = fullName.trim().split(/\s+/);

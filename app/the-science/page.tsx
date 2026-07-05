@@ -267,7 +267,7 @@ export default function SciencePage() {
               Doświadcz nauki w praktyce
             </h2>
             <p className="text-lg leading-7 text-on-surface-variant mb-10 max-w-xl mx-auto">
-              Zacznij swoją podróż ku lepszej fizjologii już dziś. Nasza 30-dniowa gwarancja satysfakcji pozwala Ci przetestować GoodStim bez ryzyka.
+              Zacznij swoją podróż ku lepszej fizjologii już dziś. Nasza 14-dniowa gwarancja satysfakcji pozwala Ci przetestować GoodStim bez ryzyka.
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <a href="/shop" className="bg-tech-blue text-white px-10 py-5 rounded-full font-semibold text-sm tracking-wide shadow-lg hover:scale-105 active:scale-95 transition-all">

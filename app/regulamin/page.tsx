@@ -92,7 +92,7 @@ export default function RegulamínPage() {
               <li>Reklamację można złożyć mailem na adres kontakt@goodstim.pl lub pisemnie.</li>
               <li>Reklamacja powinna zawierać: opis wady, datę jej stwierdzenia, dane Klienta oraz żądanie.</li>
               <li>Sprzedawca rozpatruje reklamację w terminie 14 dni roboczych.</li>
-              <li>Dodatkowo Sprzedawca oferuje <strong>30-dniową Gwarancję Satysfakcji</strong>: jeśli Klient nie zauważy poprawy jakości snu lub samopoczucia, może zwrócić produkt w ciągu 30 dni i otrzymać pełny zwrot pieniędzy.</li>
+              <li>Dodatkowo Sprzedawca oferuje <strong>14-dniową Gwarancję Satysfakcji</strong>: jeśli Klient nie zauważy poprawy jakości snu lub samopoczucia, może zwrócić produkt w ciągu 14 dni i otrzymać pełny zwrot pieniędzy.</li>
             </ol>
           </section>
 

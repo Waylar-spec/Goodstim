@@ -56,7 +56,7 @@ export default function ZwrotyPage() {
       <main className="max-w-xl mx-auto px-6 py-16">
         <h1 className="font-montserrat text-4xl font-bold text-primary mb-3">Zwrot zamówienia</h1>
         <p className="text-on-surface-variant mb-10 leading-relaxed">
-          Masz 30 dni od otrzymania przesyłki. Wypełnij formularz, a wygenerujemy dla Ciebie darmową etykietę zwrotną InPost — bez konieczności kontaktu mailowego. Pełne warunki znajdziesz w <Link href="/regulamin#zwroty" className="text-primary underline">Regulaminie</Link>.
+          Masz 14 dni od otrzymania przesyłki. Wypełnij formularz, a wygenerujemy dla Ciebie darmową etykietę zwrotną InPost — bez konieczności kontaktu mailowego. Pełne warunki znajdziesz w <Link href="/regulamin#zwroty" className="text-primary underline">Regulaminie</Link>.
         </p>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-black/5 p-8 space-y-5 shadow-sm">

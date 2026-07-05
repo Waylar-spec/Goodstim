@@ -33,7 +33,7 @@ const FAQS = [
   },
   {
     q: "Jaka jest polityka zwrotów?",
-    a: "Oferujemy 30-dniową gwarancję — jeśli urządzenie nie spełni Twoich oczekiwań, skontaktuj się z nami w ciągu 30 dni od zakupu. Zwrot lub wymiana bez zbędnych formalności. Szczegóły dostępne w Polityce zwrotów.",
+    a: "Oferujemy 14-dniową gwarancję — jeśli urządzenie nie spełni Twoich oczekiwań, skontaktuj się z nami w ciągu 14 dni od zakupu. Zwrot lub wymiana bez zbędnych formalności. Szczegóły dostępne w Polityce zwrotów.",
   },
 ] as const;
 

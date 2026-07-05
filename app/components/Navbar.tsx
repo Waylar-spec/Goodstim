@@ -351,7 +351,7 @@ export default function Navbar() {
             </div>
             <p className="text-xs text-on-surface-variant flex items-center gap-1.5">
               <Icon name="local_shipping" className="text-[16px] text-secondary" />
-              Darmowa dostawa · 30-dniowa gwarancja zwrotu
+              Darmowa dostawa · 14-dniowa gwarancja zwrotu
             </p>
             <Link
               href="/checkout"

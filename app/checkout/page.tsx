@@ -550,7 +550,7 @@ function CheckoutPageInner() {
               <div className="flex flex-wrap items-center gap-8 py-8 border-t border-outline-variant/20">
                 {[
                   { icon: "verified_user", label: "Szyfrowanie SSL" },
-                  { icon: "favorite", label: "30-dniowa gwarancja" },
+                  { icon: "favorite", label: "14-dniowa gwarancja" },
                   { icon: "package_2", label: "Ekologiczna dostawa" },
                 ].map((b) => (
                   <div key={b.label} className="flex items-center gap-2 opacity-60">
@@ -663,7 +663,7 @@ function CheckoutPageInner() {
                 <div className="mt-6 p-6 bg-soft-mint rounded-2xl border border-vibrant-teal/20 flex items-start gap-4">
                   <Icon name="published_with_changes" className="text-vibrant-teal flex-shrink-0 mt-0.5" />
                   <div>
-                    <h5 className="text-sm font-semibold text-primary">30-dniowa Gwarancja Snu</h5>
+                    <h5 className="text-sm font-semibold text-primary">14-dniowa Gwarancja Snu</h5>
                     <p className="text-xs text-on-surface-variant mt-1">Jeśli nie poczujesz mierzalnej poprawy jakości snu i spokoju, zwróć urządzenie — pełny zwrot pieniędzy bez pytań.</p>
                   </div>
                 </div>
