@@ -249,6 +249,31 @@ export default function AdminPage() {
   const [returnsLoading, setReturnsLoading] = useState(false);
   const [returnsError, setReturnsError] = useState(false);
   const [returnsBusyId, setReturnsBusyId] = useState<number | null>(null);
+  const [manualOrderNumber, setManualOrderNumber] = useState("");
+  const [manualReason, setManualReason] = useState("");
+  const [manualSubmitting, setManualSubmitting] = useState(false);
+
+  async function createManualReturn() {
+    if (!manualOrderNumber.trim() || !manualReason.trim()) return;
+    setManualSubmitting(true);
+    try {
+      const res = await fetch("/api/admin/returns/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderNumber: manualOrderNumber.trim(), reason: manualReason.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(`Błąd: ${data.error ?? "nieznany"}`);
+      } else {
+        setManualOrderNumber("");
+        setManualReason("");
+        loadReturns();
+      }
+    } finally {
+      setManualSubmitting(false);
+    }
+  }
 
   async function loadReturns() {
     setReturnsLoading(true);
@@ -1250,6 +1275,31 @@ export default function AdminPage() {
               <button onClick={loadReturns} className="text-xs text-gray-400 hover:text-white border border-white/10 px-3 py-1.5 rounded-lg transition-colors">
                 ↻ Odśwież
               </button>
+            </div>
+
+            <div className="bg-[#111827] border border-white/10 rounded-2xl p-5 mb-6">
+              <p className="text-xs text-gray-500 mb-3">Dodaj zwrot ręcznie (np. wyjątek poza limitem dni) — pomija sprawdzanie okna zwrotu.</p>
+              <div className="flex flex-wrap gap-3">
+                <input
+                  value={manualOrderNumber}
+                  onChange={e => setManualOrderNumber(e.target.value)}
+                  placeholder="Numer zamówienia (GS-...)"
+                  className="bg-[#0a0f1e] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-600 flex-1 min-w-[160px]"
+                />
+                <input
+                  value={manualReason}
+                  onChange={e => setManualReason(e.target.value)}
+                  placeholder="Powód zwrotu"
+                  className="bg-[#0a0f1e] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-600 flex-1 min-w-[160px]"
+                />
+                <button
+                  onClick={createManualReturn}
+                  disabled={manualSubmitting || !manualOrderNumber.trim() || !manualReason.trim()}
+                  className="text-xs bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
+                >
+                  {manualSubmitting ? "Dodawanie..." : "+ Dodaj ręcznie"}
+                </button>
+              </div>
             </div>
 
             {returnsLoading ? (
