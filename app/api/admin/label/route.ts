@@ -61,7 +61,8 @@ export async function POST(req: NextRequest) {
     service: isPaczkomat ? "inpost_locker_standard" : "inpost_courier_c2c",
     custom_attributes: {
       target_point: order.inpost_locker || undefined,
-      sending_method: "dispatch_order",
+      // Nadanie samodzielnie w dowolnym Paczkomacie — nie czekamy na odbiór przez kuriera.
+      sending_method: "parcel_locker",
     },
     reference: order.order_number,
     comments: `GoodStim zamówienie ${order.order_number}`,

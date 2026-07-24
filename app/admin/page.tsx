@@ -319,7 +319,7 @@ export default function AdminPage() {
     setReturns(r => r.map(x => x.id === id ? { ...x, status } : x));
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); loadReturns(); }, []);
 
   useEffect(() => {
     if (activeMainTab === "reviews") loadReviews();
@@ -327,6 +327,13 @@ export default function AdminPage() {
     if (activeMainTab === "carts") loadCarts();
     if (activeMainTab === "returns") loadReturns();
   }, [activeMainTab]);
+
+  // order_id-y zamówień z aktywnym (nieodrzuconym) zgłoszeniem zwrotu — do odznaki w liście
+  // zamówień i wykluczenia z przychodu, bo te pieniądze są zagrożone/już oddane.
+  const returnedOrderIds = useMemo(
+    () => new Set(returns.filter(r => r.status !== "rejected").map(r => r.order_id)),
+    [returns]
+  );
 
   async function setStatus(id: number, status: string) {
     await fetch("/api/admin/orders", {
@@ -464,9 +471,9 @@ export default function AdminPage() {
     // cur/prev = wszystkie zamówienia w okresie (włącznie z anulowanymi) — potrzebne do wykresu statusów.
     const cur = orders.filter(o => { const d = new Date(o.created_at); return d >= from && d <= to; });
     const prev = orders.filter(o => { const d = new Date(o.created_at); return d >= prevFrom && d <= prevTo; });
-    // curValid/prevValid = bez anulowanych — do wszystkiego co liczy przychód/sprzedaż.
-    const curValid = cur.filter(o => o.status !== "cancelled");
-    const prevValid = prev.filter(o => o.status !== "cancelled");
+    // curValid/prevValid = bez anulowanych i bez zamówień z aktywnym zwrotem — do wszystkiego co liczy przychód/sprzedaż.
+    const curValid = cur.filter(o => o.status !== "cancelled" && !returnedOrderIds.has(o.id));
+    const prevValid = prev.filter(o => o.status !== "cancelled" && !returnedOrderIds.has(o.id));
 
     const revenue = curValid.reduce((s, o) => s + parseFloat(o.total_pln), 0);
     const prevRevenue = prevValid.reduce((s, o) => s + parseFloat(o.total_pln), 0);
@@ -541,7 +548,7 @@ export default function AdminPage() {
     });
 
     return { revenue, prevRevenue, count, prevCount, aov, prevAov, pending, buckets, byStatus, byDelivery, topProducts, dow, spanDays, totalCount: cur.length };
-  }, [orders, period, customFrom, customTo]);
+  }, [orders, period, customFrom, customTo, returnedOrderIds]);
 
   const DOW_LABELS = ["Nd", "Pn", "Wt", "Śr", "Cz", "Pt", "Sb"];
 
@@ -583,7 +590,7 @@ export default function AdminPage() {
               {[
                 { label: "Wszystkich zamówień", value: orders.length },
                 { label: "Nowych (do wysyłki)", value: orders.filter(o => o.status === "new").length, highlight: orders.filter(o => o.status === "new").length > 0 },
-                { label: "Łączny przychód", value: `${orders.filter(o => o.status !== "cancelled").reduce((s, o) => s + parseFloat(o.total_pln), 0).toFixed(2)} PLN` },
+                { label: "Łączny przychód", value: `${orders.filter(o => o.status !== "cancelled" && !returnedOrderIds.has(o.id)).reduce((s, o) => s + parseFloat(o.total_pln), 0).toFixed(2)} PLN` },
               ].map(s => (
                 <div key={s.label} className={`rounded-2xl p-5 border ${s.highlight ? "bg-blue-600/10 border-blue-500/30" : "bg-[#111827] border-white/10"}`}>
                   <p className="text-xs text-gray-400 mb-1">{s.label}</p>
@@ -642,6 +649,9 @@ export default function AdminPage() {
                                 {o.invoice_type === "invoice" && (
                                   <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300">🏢 Faktura</span>
                                 )}
+                                {returnedOrderIds.has(o.id) && (
+                                  <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-300">↩️ Zwrot</span>
+                                )}
                               </div>
                               <p className="text-sm text-gray-300">{o.customer_name} · {o.customer_email}</p>
                               <p className="text-xs text-gray-500 mt-0.5">{new Date(o.created_at).toLocaleString("pl-PL")}</p>
@@ -684,6 +694,11 @@ export default function AdminPage() {
                   {selected.invoice_type === "invoice" && (
                     <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-3 py-2 text-xs text-yellow-300">
                       <strong>Faktura VAT</strong> — {selected.company_name || "—"} · NIP: {selected.nip || "—"}
+                    </div>
+                  )}
+                  {returnedOrderIds.has(selected.id) && (
+                    <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl px-3 py-2 text-xs text-orange-300">
+                      <strong>↩️ Zgłoszony zwrot</strong> — szczegóły w zakładce "Zwroty"
                     </div>
                   )}
                   <div>
