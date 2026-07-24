@@ -17,6 +17,20 @@ export async function GET() {
   return NextResponse.json({ orders });
 }
 
+export async function DELETE(req: NextRequest) {
+  if (!await isAuthed()) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { id } = await req.json();
+  if (!id) return NextResponse.json({ error: "Brak id" }, { status: 400 });
+
+  const sql = getDb();
+  // Usuń najpierw powiązane rekordy (brak ON DELETE CASCADE w schemacie).
+  await sql`DELETE FROM return_requests WHERE order_id = ${id}`;
+  await sql`DELETE FROM reviews WHERE order_id = ${id}`;
+  await sql`DELETE FROM orders WHERE id = ${id}`;
+
+  return NextResponse.json({ ok: true });
+}
+
 export async function PATCH(req: NextRequest) {
   if (!await isAuthed()) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id, status, tracking_number, notes } = await req.json();

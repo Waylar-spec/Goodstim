@@ -439,6 +439,22 @@ export default function AdminPage() {
     router.push("/admin/login");
   }
 
+  async function deleteOrder(id: number, orderNumber: string) {
+    if (!confirm(`Usunąć zamówienie ${orderNumber}? Tej operacji nie można cofnąć.`)) return;
+    const res = await fetch("/api/admin/orders", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    if (res.ok) {
+      setOrders(o => o.filter(x => x.id !== id));
+      if (selected?.id === id) setSelected(null);
+    } else {
+      const data = await res.json();
+      alert("Błąd: " + data.error);
+    }
+  }
+
   async function clearAllOrders() {
     if (!confirm("Usuń WSZYSTKIE zamówienia? Tej operacji nie można cofnąć.")) return;
     const res = await fetch("/api/admin/orders/clear", { method: "DELETE" });
@@ -689,7 +705,16 @@ export default function AdminPage() {
                 <div className="w-96 shrink-0 bg-[#111827] border border-white/10 rounded-2xl p-6 space-y-5 self-start sticky top-6">
                   <div className="flex items-center justify-between">
                     <h2 className="font-bold text-lg">{selected.order_number}</h2>
-                    <button onClick={() => setSelected(null)} className="text-gray-500 hover:text-white text-xl">×</button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => deleteOrder(selected.id, selected.order_number)}
+                        title="Usuń zamówienie"
+                        className="text-red-500/70 hover:text-red-400 text-sm"
+                      >
+                        🗑
+                      </button>
+                      <button onClick={() => setSelected(null)} className="text-gray-500 hover:text-white text-xl">×</button>
+                    </div>
                   </div>
                   {selected.invoice_type === "invoice" && (
                     <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-3 py-2 text-xs text-yellow-300">
