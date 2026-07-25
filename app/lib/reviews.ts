@@ -52,7 +52,7 @@ export const REVIEWS: Review[] = [
   {
     name: "Magdalena T.",
     location: "Szczecin",
-    text: "Bardzo dobry sprzęt, jedyny minus to że pilot czasem gubi połączenie. Poza tym pełna satysfakcja.",
+    text: "Bardzo dobry sprzęt, jedyny minus to że aplikacja czasem gubi połączenie Bluetooth. Poza tym pełna satysfakcja.",
     date: "Czerwiec 2025",
     rating: 4,
   },

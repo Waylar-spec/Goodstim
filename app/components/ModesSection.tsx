@@ -71,8 +71,8 @@ export default function ModesSection() {
             Jeden program na każdą potrzebę
           </h2>
           <p className="text-lg text-on-surface-variant max-w-2xl mx-auto">
-            Pilot dołączony do zestawu pozwala przełączać tryby jednym
-            przyciskiem — bez potrzeby aplikacji.
+            Aplikacja mobilna pozwala przełączać tryby jednym dotknięciem —
+            pełna kontrola z telefonu.
           </p>
         </div>
 

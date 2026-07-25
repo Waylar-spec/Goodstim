@@ -22,10 +22,10 @@ const IMGS = {
   t3: "/product.png",
 };
 
-// TYMCZASOWE — sprzęt aktualnie jest w transporcie, więc wysyłki się wydłużają.
-// Usunąć SHIPPING_DELAY_NOTICE (i oba miejsca, które go używają) gdy zapasy się unormują.
+// TYMCZASOWE — duża liczba zamówień, więc wysyłki się wydłużają.
+// Usunąć SHIPPING_DELAY_NOTICE (i oba miejsca, które go używają) gdy kolejka się unormuje.
 const SHIPPING_DELAY_NOTICE = true;
-const SHIPPING_DELAY_TEXT = "Obecnie wysyłka może potrwać do 10 dni roboczych — sprzęt jest w transporcie.";
+const SHIPPING_DELAY_TEXT = "Obecnie wysyłka może potrwać do 5 dni roboczych — z powodu dużej liczby zamówień.";
 
 type DisplayReview = {
   name: string;
@@ -222,7 +222,7 @@ export default function ShopClient() {
                 <div className="pt-6 border-t border-outline-variant/20 grid grid-cols-2 gap-4">
                   {[
                     { icon: "battery_charging_full", label: "Bateria 500 mAh" },
-                    { icon: "settings_remote", label: "Pilot w zestawie" },
+                    { icon: "smartphone", label: "Sterowanie z aplikacji" },
                   ].map((f) => (
                     <div key={f.label} className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-soft-mint flex items-center justify-center">
