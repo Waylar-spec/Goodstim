@@ -5,8 +5,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import Icon from "./Icon";
-import { useCart } from "../lib/cart";
-import { formatPrice, getProduct, DEVICE_ID, TRAVEL_CASE_ID, TRAVEL_CASE_BUNDLE_PRICE } from "../lib/products";
+import Logo from "./Logo";
+import { useCart, getLineTotal } from "../lib/cart";
+import { formatPrice, getProduct, DEVICE_ID, TRAVEL_CASE_ID, TRAVEL_CASE_BUNDLE_PRICE, DEVICE_ADDITIONAL_PRICE } from "../lib/products";
 
 const NAV_LINKS = [
   { label: "Nauka", href: "/the-science" },
@@ -93,9 +94,11 @@ export default function Navbar() {
   const pathname = usePathname();
   const { items, addToCart, removeFromCart, setQty, total, count, cartOpen, openCart, closeCart } = useCart();
   const travelCase = getProduct(TRAVEL_CASE_ID);
+  const device = getProduct(DEVICE_ID);
   const hasDevice = items.some((i) => i.product.id === DEVICE_ID);
   const hasCase = items.some((i) => i.product.id === TRAVEL_CASE_ID);
   const showCaseUpsell = hasDevice && !hasCase && !!travelCase;
+  const showDeviceUpsell = hasDevice && !!device;
   const bundleActive = hasDevice && hasCase;
   const [shopOpen, setShopOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -120,9 +123,7 @@ export default function Navbar() {
     <>
       <nav className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md border-b border-white/20 shadow-[0px_4px_20px_rgba(37,37,55,0.04)]">
         <div className="max-w-[1280px] mx-auto flex justify-between items-center px-6 md:px-16 h-20">
-          <Link href="/" className="font-montserrat text-2xl md:text-3xl font-extrabold uppercase tracking-widest text-primary">
-            GoodStim
-          </Link>
+          <Logo variant="light" />
           <div className="hidden md:flex items-center space-x-8">
             <div
               ref={shopRef}
@@ -345,7 +346,7 @@ export default function Navbar() {
                         <span className="font-bold text-secondary">{formatPrice(product.price * qty)}</span>
                       </span>
                     ) : (
-                      <span className="text-sm font-bold text-secondary">{formatPrice(product.price * qty)}</span>
+                      <span className="text-sm font-bold text-secondary">{formatPrice(getLineTotal({ product, qty }))}</span>
                     )}
                   </div>
                 </div>
@@ -354,29 +355,54 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Upsell: etui w cenie promocyjnej dopóki urządzenie jest w koszyku */}
-        {showCaseUpsell && travelCase && (
-          <div className="px-6 pb-4">
-            <p className="text-xs font-semibold text-on-surface-variant uppercase tracking-wide mb-3">Polecane dla Ciebie</p>
-            <div className="flex items-center gap-3 p-3 bg-soft-mint rounded-2xl border border-vibrant-teal/20">
-              <div className="relative w-14 h-14 bg-white rounded-xl flex-shrink-0 overflow-hidden">
-                <Image src={travelCase.image} alt={travelCase.name} fill sizes="56px" className="object-cover" />
+        {/* Upsell: etui w cenie promocyjnej + dodatkowe urządzenie w cenie obniżonej */}
+        {(showCaseUpsell || showDeviceUpsell) && (
+          <div className="px-6 pb-4 space-y-3">
+            <p className="text-xs font-semibold text-on-surface-variant uppercase tracking-wide">Polecane dla Ciebie</p>
+
+            {showDeviceUpsell && device && (
+              <div className="flex items-center gap-3 p-3 bg-soft-mint rounded-2xl border border-vibrant-teal/20">
+                <div className="relative w-14 h-14 bg-white rounded-xl flex-shrink-0 overflow-hidden">
+                  <Image src={device.image} alt="Dodatkowe urządzenie GoodStim" fill sizes="56px" className="object-cover" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-primary truncate">Dodatkowe urządzenie GoodStim</p>
+                  <p className="text-xs text-on-surface-variant">
+                    <span className="line-through opacity-60 mr-1.5">{formatPrice(device.price)}</span>
+                    <span className="text-secondary font-bold">{formatPrice(DEVICE_ADDITIONAL_PRICE)}</span>
+                  </p>
+                </div>
+                <button
+                  onClick={() => addToCart(device)}
+                  className="flex-shrink-0 px-4 py-2 bg-tech-blue text-white text-xs font-semibold rounded-full hover:bg-primary transition-colors flex items-center gap-1"
+                >
+                  <Icon name="add" className="text-[16px]" />
+                  Dodaj
+                </button>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-primary truncate">{travelCase.name}</p>
-                <p className="text-xs text-on-surface-variant">
-                  <span className="line-through opacity-60 mr-1.5">{formatPrice(travelCase.price)}</span>
-                  <span className="text-secondary font-bold">{formatPrice(TRAVEL_CASE_BUNDLE_PRICE)} w zestawie</span>
-                </p>
+            )}
+
+            {showCaseUpsell && travelCase && (
+              <div className="flex items-center gap-3 p-3 bg-soft-mint rounded-2xl border border-vibrant-teal/20">
+                <div className="relative w-14 h-14 bg-white rounded-xl flex-shrink-0 overflow-hidden">
+                  <Image src={travelCase.image} alt={travelCase.name} fill sizes="56px" className="object-cover" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-primary truncate">{travelCase.name}</p>
+                  <p className="text-xs text-on-surface-variant">
+                    <span className="line-through opacity-60 mr-1.5">{formatPrice(travelCase.price)}</span>
+                    <span className="text-secondary font-bold">{formatPrice(TRAVEL_CASE_BUNDLE_PRICE)} w zestawie</span>
+                  </p>
+                </div>
+                <button
+                  onClick={() => addToCart(travelCase)}
+                  className="flex-shrink-0 px-4 py-2 bg-tech-blue text-white text-xs font-semibold rounded-full hover:bg-primary transition-colors flex items-center gap-1"
+                >
+                  <Icon name="add" className="text-[16px]" />
+                  Dodaj
+                </button>
               </div>
-              <button
-                onClick={() => addToCart(travelCase)}
-                className="flex-shrink-0 px-4 py-2 bg-tech-blue text-white text-xs font-semibold rounded-full hover:bg-primary transition-colors flex items-center gap-1"
-              >
-                <Icon name="add" className="text-[16px]" />
-                Dodaj
-              </button>
-            </div>
+            )}
           </div>
         )}
 

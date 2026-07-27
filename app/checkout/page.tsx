@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import Icon from "../components/Icon";
-import { useCart } from "../lib/cart";
+import { useCart, getLineTotal } from "../lib/cart";
 import { formatPrice, getProduct } from "../lib/products";
 import StripeProvider from "../components/StripeProvider";
 import StripeCheckoutForm from "../components/StripeCheckoutForm";
@@ -589,7 +589,7 @@ function CheckoutPageInner() {
                                 <p className="text-xs text-on-surface-variant">{product.subtitle}</p>
                               </div>
                               <div className="flex justify-between items-center">
-                                <span className="text-sm font-semibold text-secondary">{formatPrice(product.price * qty)}</span>
+                                <span className="text-sm font-semibold text-secondary">{formatPrice(getLineTotal({ product, qty }))}</span>
                                 <div className="flex items-center gap-1.5">
                                   <button onClick={() => setQty(product.id, qty - 1)} className="w-6 h-6 rounded-full bg-surface-container-low flex items-center justify-center hover:bg-surface-container text-on-surface-variant">
                                     <Icon name="remove" className="text-[14px]" />

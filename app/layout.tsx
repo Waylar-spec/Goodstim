@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Montserrat } from "next/font/google";
+import { Inter, Montserrat, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import Providers from "./components/Providers";
 
@@ -12,6 +12,12 @@ const montserrat = Montserrat({
   subsets: ["latin"],
   weight: ["400", "600", "700"],
   variable: "--font-montserrat",
+});
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["500", "700"],
+  variable: "--font-logo",
 });
 
 export const metadata: Metadata = {
@@ -48,7 +54,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pl" className={`${inter.variable} ${montserrat.variable}`}>
+    <html lang="pl" className={`${inter.variable} ${montserrat.variable} ${spaceGrotesk.variable}`}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

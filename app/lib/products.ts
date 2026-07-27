@@ -20,6 +20,8 @@ export type Product = {
 export const DEVICE_ID = "vns-one";
 export const TRAVEL_CASE_ID = "travel-case";
 export const TRAVEL_CASE_BUNDLE_PRICE = 39;
+// Cena każdego kolejnego urządzenia GoodStim ponad pierwsze w koszyku (np. drugi zestaw dla partnera).
+export const DEVICE_ADDITIONAL_PRICE = 399;
 
 export const PRODUCTS: Product[] = [
   {
