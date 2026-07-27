@@ -3,9 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import toast from "react-hot-toast";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import Icon from "./Icon";
+import { useCart } from "../lib/cart";
+import { getProduct, formatPrice, DEVICE_ID, TRAVEL_CASE_ID, TRAVEL_CASE_BUNDLE_PRICE } from "../lib/products";
+import { trackAddToCart } from "../lib/analytics";
 
 const IMAGES = ["/case/1.avif", "/case/2.avif"];
 
@@ -31,31 +35,24 @@ const FAQS = [
     a: "Etui zamykane jest na wygodny zamek błyskawiczny, dzięki czemu Twój GoodStim jest bezpiecznie schowany, a jednocześnie łatwo dostępny w każdej chwili.",
   },
   {
-    q: "Kiedy etui pojawi się w sprzedaży i ile będzie kosztować?",
-    a: "Finalizujemy ostatnie szczegóły — dokładną cenę i datę premiery ogłosimy wkrótce. Zapisz się do newslettera powyżej, a dowiesz się o tym jako pierwsza/pierwszy.",
+    q: "Ile kosztuje etui?",
+    a: "Etui kosztuje 49 zł. Jeśli dodasz je do koszyka razem z GoodStim VNS One, cena spada do 39 zł.",
   },
 ] as const;
 
 export default function TravelCaseClient() {
   const [activeThumb, setActiveThumb] = useState(0);
-  const [email, setEmail] = useState("");
-  const [newsletterState, setNewsletterState] = useState<"idle" | "loading" | "ok" | "error">("idle");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const { items, addToCart, openCart } = useCart();
 
-  async function handleNewsletter(e: React.FormEvent) {
-    e.preventDefault();
-    if (!email) return;
-    setNewsletterState("loading");
-    try {
-      const res = await fetch("/api/email/newsletter", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, source: "travel-case-waitlist" }),
-      });
-      setNewsletterState(res.ok ? "ok" : "error");
-    } catch {
-      setNewsletterState("error");
-    }
+  const travelCase = getProduct(TRAVEL_CASE_ID)!;
+  const hasDevice = items.some((i) => i.product.id === DEVICE_ID);
+
+  function handleAdd() {
+    addToCart(travelCase);
+    trackAddToCart({ id: travelCase.id, name: travelCase.name, price: hasDevice ? TRAVEL_CASE_BUNDLE_PRICE : travelCase.price });
+    openCart();
+    toast.success(`${travelCase.name} dodano do koszyka!`, { icon: "🛒" });
   }
 
   return (
@@ -75,11 +72,8 @@ export default function TravelCaseClient() {
                   fill
                   sizes="(max-width: 1024px) 90vw, 700px"
                   priority
-                  className="object-cover transition-transform duration-700 group-hover:scale-105 grayscale"
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
                 />
-                <span className="absolute top-6 left-6 px-3 py-1.5 bg-on-surface-variant/80 text-white text-xs font-bold uppercase tracking-wider rounded-full backdrop-blur-sm">
-                  Wkrótce w sprzedaży
-                </span>
               </div>
               <div className="grid grid-cols-4 gap-4">
                 {IMAGES.map((src, i) => (
@@ -93,7 +87,7 @@ export default function TravelCaseClient() {
                       alt={`Etui podróżne GoodStim — widok ${i + 1}`}
                       fill
                       sizes="120px"
-                      className="object-cover grayscale"
+                      className="object-cover"
                     />
                   </button>
                 ))}
@@ -103,57 +97,36 @@ export default function TravelCaseClient() {
             {/* Info card */}
             <div className="lg:col-span-5 space-y-10 lg:sticky lg:top-32">
               <div className="space-y-4">
-                <span className="px-3 py-1 bg-surface-container text-on-surface-variant text-xs font-semibold tracking-wide rounded-full">WKRÓTCE W SPRZEDAŻY</span>
+                <span className="px-3 py-1 bg-soft-mint text-secondary text-xs font-semibold tracking-wide rounded-full">AKCESORIUM</span>
                 <h1 className="font-montserrat text-[32px] leading-[40px] font-semibold tracking-[-0.01em] text-primary">Etui podróżne GoodStim</h1>
                 <p className="text-lg leading-7 text-on-surface-variant">Kompaktowe, wytrzymałe etui do bezpiecznego przechowywania i transportu Twojego GoodStim VNS One oraz akcesoriów.</p>
               </div>
 
               <div className="p-6 bg-surface-container-lowest border border-outline-variant/20 rounded-[24px] shadow-sm space-y-6">
                 <div className="flex items-baseline gap-2">
-                  <span className="font-montserrat text-2xl font-bold text-on-surface-variant/60">Cena i data premiery — wkrótce</span>
+                  {hasDevice ? (
+                    <>
+                      <span className="font-montserrat text-3xl font-bold text-tech-blue">{formatPrice(TRAVEL_CASE_BUNDLE_PRICE)}</span>
+                      <span className="text-base text-on-surface-variant/60 line-through">{formatPrice(travelCase.price)}</span>
+                      <span className="text-xs font-semibold text-secondary bg-soft-mint px-2 py-1 rounded-full">w zestawie</span>
+                    </>
+                  ) : (
+                    <span className="font-montserrat text-3xl font-bold text-tech-blue">{formatPrice(travelCase.price)}</span>
+                  )}
                 </div>
+                {!hasDevice && (
+                  <p className="text-xs text-secondary font-semibold">
+                    {formatPrice(TRAVEL_CASE_BUNDLE_PRICE)}, jeśli kupisz razem z GoodStim VNS One
+                  </p>
+                )}
                 <div className="space-y-4">
                   <button
-                    disabled
-                    className="w-full py-5 rounded-full font-semibold text-sm tracking-wide text-center flex items-center justify-center gap-2 bg-surface-container text-on-surface-variant cursor-default"
+                    onClick={handleAdd}
+                    className="w-full py-5 rounded-full font-semibold text-sm tracking-wide text-center flex items-center justify-center gap-2 bg-tech-blue hover:bg-primary text-white transition-all btn-press"
                   >
-                    <Icon name="schedule" className="text-[20px]" />
-                    Wkrótce dostępne
+                    <Icon name="add_shopping_cart" className="text-[20px]" />
+                    Dodaj do koszyka
                   </button>
-
-                  <div className="pt-2 space-y-3">
-                    <p className="text-xs text-on-surface-variant text-center leading-relaxed">
-                      Bądź na bieżąco — dołącz do newslettera, a odezwiemy się w dniu premiery.
-                    </p>
-                    {newsletterState === "ok" ? (
-                      <div className="flex items-center justify-center gap-2 py-3.5 px-4 bg-soft-mint rounded-xl">
-                        <Icon name="check_circle" className="text-secondary text-[18px]" fill />
-                        <p className="text-secondary font-semibold text-xs">Zapisano! Damy Ci znać jako pierwszej/-emu.</p>
-                      </div>
-                    ) : (
-                      <form onSubmit={handleNewsletter} className="flex flex-col sm:flex-row gap-2">
-                        <input
-                          type="email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="Twój adres e-mail"
-                          required
-                          disabled={newsletterState === "loading"}
-                          className="flex-grow px-4 py-3 rounded-full border border-outline-variant/30 bg-white text-sm outline-none focus:ring-2 focus:ring-vibrant-teal transition-all placeholder:text-outline disabled:opacity-60"
-                        />
-                        <button
-                          type="submit"
-                          disabled={newsletterState === "loading"}
-                          className="px-5 py-3 bg-tech-blue text-white text-sm font-semibold rounded-full hover:bg-primary transition-colors whitespace-nowrap disabled:opacity-60"
-                        >
-                          {newsletterState === "loading" ? "Zapisuję…" : "Powiadom mnie"}
-                        </button>
-                      </form>
-                    )}
-                    {newsletterState === "error" && (
-                      <p className="text-error text-xs text-center">Coś poszło nie tak. Spróbuj ponownie.</p>
-                    )}
-                  </div>
                 </div>
                 <div className="pt-6 border-t border-outline-variant/20 grid grid-cols-2 gap-4">
                   {[
@@ -247,8 +220,8 @@ export default function TravelCaseClient() {
 
           {/* BACK TO SHOP */}
           <section className="mt-40 text-center space-y-6">
-            <h2 className="font-montserrat text-[28px] leading-[36px] font-semibold text-primary">Nie chcesz czekać?</h2>
-            <p className="text-on-surface-variant max-w-xl mx-auto">GoodStim VNS One jest już dostępny w sprzedaży — etui to dodatek, który dołączy do oferty wkrótce.</p>
+            <h2 className="font-montserrat text-[28px] leading-[36px] font-semibold text-primary">Nie masz jeszcze GoodStim?</h2>
+            <p className="text-on-surface-variant max-w-xl mx-auto">Kup GoodStim VNS One razem z etui i zapłać tylko {formatPrice(TRAVEL_CASE_BUNDLE_PRICE)} za etui zamiast {formatPrice(travelCase.price)}.</p>
             <Link
               href="/shop"
               className="inline-block px-8 py-4 bg-tech-blue text-white rounded-full font-semibold text-sm hover:bg-primary transition-colors"

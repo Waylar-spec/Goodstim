@@ -6,7 +6,7 @@ export default function Footer() {
     <footer className="bg-tech-blue text-white">
       <div className="max-w-[1280px] mx-auto px-6 md:px-16 py-20 flex flex-col md:flex-row justify-between gap-12">
         <div className="space-y-6 max-w-sm">
-          <div className="font-montserrat text-2xl font-bold text-vibrant-teal">GoodStim</div>
+          <div className="font-montserrat text-2xl font-extrabold uppercase tracking-widest text-vibrant-teal">GoodStim</div>
           <p className="text-base text-on-primary-container leading-relaxed">
             Osobisty stymulator nerwu błędnego do codziennego wsparcia równowagi układu nerwowego i jakości snu.
           </p>

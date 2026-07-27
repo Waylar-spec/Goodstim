@@ -1,6 +1,7 @@
 "use client";
-import { createContext, useContext, useReducer, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useReducer, useEffect, useMemo, useState, ReactNode } from "react";
 import type { Product } from "./products";
+import { DEVICE_ID, TRAVEL_CASE_ID, TRAVEL_CASE_BUNDLE_PRICE } from "./products";
 
 const STORAGE_KEY = "goodstim_cart";
 
@@ -81,11 +82,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const clearCart = () => dispatch({ type: "CLEAR" });
   const openCart = () => setCartOpen(true);
   const closeCart = () => setCartOpen(false);
-  const total = state.items.reduce((s, i) => s + i.product.price * i.qty, 0);
-  const count = state.items.reduce((s, i) => s + i.qty, 0);
+
+  // Etui jest w cenie promocyjnej tylko dopóki urządzenie jest w koszyku — jeśli je usuniesz,
+  // etui automatycznie wraca do ceny standardowej.
+  const items = useMemo(() => {
+    const hasDevice = state.items.some((i) => i.product.id === DEVICE_ID);
+    if (!hasDevice) return state.items;
+    return state.items.map((i) =>
+      i.product.id === TRAVEL_CASE_ID
+        ? { ...i, product: { ...i.product, price: TRAVEL_CASE_BUNDLE_PRICE } }
+        : i
+    );
+  }, [state.items]);
+
+  const total = items.reduce((s, i) => s + i.product.price * i.qty, 0);
+  const count = items.reduce((s, i) => s + i.qty, 0);
 
   return (
-    <CartContext.Provider value={{ items: state.items, addToCart, removeFromCart, setQty, clearCart, total, count, cartOpen, openCart, closeCart }}>
+    <CartContext.Provider value={{ items, addToCart, removeFromCart, setQty, clearCart, total, count, cartOpen, openCart, closeCart }}>
       {children}
     </CartContext.Provider>
   );

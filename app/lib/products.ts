@@ -15,6 +15,12 @@ export type Product = {
   priceHistory?: PricePoint[];
 };
 
+// Etui w zestawie z urządzeniem jest tańsze — te stałe napędzają logikę koszyka (lib/cart.tsx)
+// i podpowiedzi cenowe na stronach produktowych.
+export const DEVICE_ID = "vns-one";
+export const TRAVEL_CASE_ID = "travel-case";
+export const TRAVEL_CASE_BUNDLE_PRICE = 39;
+
 export const PRODUCTS: Product[] = [
   {
     id: "vns-one",
@@ -51,11 +57,10 @@ export const PRODUCTS: Product[] = [
     id: "travel-case",
     name: "Etui podróżne GoodStim",
     subtitle: "Twarde etui ochronne",
-    price: 55,
+    price: 49,
     image: "/case/1.avif",
     category: "accessory",
     description: "Wytrzymałe etui do bezpiecznego przechowywania i transportu GoodStim VNS One wraz z akcesoriami.",
-    comingSoon: true,
   },
 ];
 
