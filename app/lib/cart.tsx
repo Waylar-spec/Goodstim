@@ -30,16 +30,22 @@ function reducer(state: State, action: Action): State {
       }
       return { items: [...state.items, { product: action.product, qty: 1 }] };
     }
-    case "REMOVE":
-      return { items: state.items.filter((i) => i.product.id !== action.id) };
-    case "SET_QTY":
-      if (action.qty <= 0)
-        return { items: state.items.filter((i) => i.product.id !== action.id) };
+    case "REMOVE": {
+      const items = state.items.filter((i) => i.product.id !== action.id);
+      // Dodatkowe urządzenie nie ma sensu bez głównego — usuń je razem z nim.
+      return { items: action.id === DEVICE_ID ? items.filter((i) => i.product.id !== DEVICE_ADDITIONAL_ID) : items };
+    }
+    case "SET_QTY": {
+      if (action.qty <= 0) {
+        const items = state.items.filter((i) => i.product.id !== action.id);
+        return { items: action.id === DEVICE_ID ? items.filter((i) => i.product.id !== DEVICE_ADDITIONAL_ID) : items };
+      }
       return {
         items: state.items.map((i) =>
           i.product.id === action.id ? { ...i, qty: action.qty } : i
         ),
       };
+    }
     case "CLEAR":
       return { items: [] };
     default:
