@@ -248,7 +248,7 @@ function CheckoutPageInner() {
 
       <header className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-surface-variant/20 shadow-[0px_4px_20px_rgba(37,37,55,0.04)]">
         <div className="max-w-[1280px] mx-auto flex justify-between items-center px-6 md:px-16 h-20">
-          <Link href="/" className="font-montserrat text-2xl font-bold tracking-tight text-primary">GoodStim</Link>
+          <Link href="/" className="font-montserrat text-2xl md:text-3xl font-extrabold uppercase tracking-widest text-primary">GoodStim</Link>
           <div className="flex items-center gap-6">
             <div className="hidden md:flex items-center gap-2 text-on-surface-variant text-sm font-semibold">
               <Icon name="lock" className="text-[20px]" />
@@ -675,7 +675,7 @@ function CheckoutPageInner() {
 
       <footer className="bg-tech-blue py-12">
         <div className="max-w-[1280px] mx-auto px-6 md:px-16 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="font-montserrat text-2xl font-bold text-vibrant-teal">GoodStim</div>
+          <div className="font-montserrat text-2xl font-extrabold uppercase tracking-widest text-vibrant-teal">GoodStim</div>
           <div className="flex gap-8">
             {[
               { label: "Regulamin", href: "/regulamin" },

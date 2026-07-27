@@ -11,7 +11,7 @@ export default function RegulamínPage() {
     <div className="min-h-screen bg-surface font-sans">
       <header className="bg-tech-blue py-6 px-6">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
-          <Link href="/" className="font-montserrat text-2xl font-bold text-vibrant-teal">GoodStim</Link>
+          <Link href="/" className="font-montserrat text-2xl font-extrabold uppercase tracking-widest text-vibrant-teal">GoodStim</Link>
           <Link href="/shop" className="text-on-primary-container hover:text-white text-sm font-semibold transition-colors">← Sklep</Link>
         </div>
       </header>

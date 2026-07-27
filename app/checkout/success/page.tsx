@@ -59,7 +59,7 @@ function SuccessInner() {
     <div className="min-h-screen bg-surface text-on-background font-sans flex flex-col">
       <header className="w-full border-b border-surface-variant/20 bg-surface/80 backdrop-blur-xl">
         <div className="max-w-[1280px] mx-auto flex justify-between items-center px-6 md:px-16 h-20">
-          <Link href="/" className="font-montserrat text-2xl font-bold tracking-tight text-primary">GoodStim</Link>
+          <Link href="/" className="font-montserrat text-2xl md:text-3xl font-extrabold uppercase tracking-widest text-primary">GoodStim</Link>
           <div className="hidden md:flex items-center gap-2 text-on-surface-variant text-sm font-semibold">
             <Icon name="lock" className="text-[20px]" />
             <span>Bezpieczna płatność</span>

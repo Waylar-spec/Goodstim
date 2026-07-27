@@ -93,7 +93,10 @@ export default function Navbar() {
   const pathname = usePathname();
   const { items, addToCart, removeFromCart, setQty, total, count, cartOpen, openCart, closeCart } = useCart();
   const travelCase = getProduct(TRAVEL_CASE_ID);
-  const showCaseUpsell = items.some((i) => i.product.id === DEVICE_ID) && !items.some((i) => i.product.id === TRAVEL_CASE_ID) && !!travelCase;
+  const hasDevice = items.some((i) => i.product.id === DEVICE_ID);
+  const hasCase = items.some((i) => i.product.id === TRAVEL_CASE_ID);
+  const showCaseUpsell = hasDevice && !hasCase && !!travelCase;
+  const bundleActive = hasDevice && hasCase;
   const [shopOpen, setShopOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const shopRef = useRef<HTMLDivElement>(null);
@@ -336,7 +339,14 @@ export default function Navbar() {
                     </div>
 
                     {/* Price */}
-                    <span className="text-sm font-bold text-secondary">{formatPrice(product.price * qty)}</span>
+                    {product.id === TRAVEL_CASE_ID && product.price === TRAVEL_CASE_BUNDLE_PRICE ? (
+                      <span className="text-sm">
+                        <span className="text-on-surface-variant/60 line-through mr-1.5">{formatPrice((travelCase?.price ?? product.price) * qty)}</span>
+                        <span className="font-bold text-secondary">{formatPrice(product.price * qty)}</span>
+                      </span>
+                    ) : (
+                      <span className="text-sm font-bold text-secondary">{formatPrice(product.price * qty)}</span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -373,6 +383,12 @@ export default function Navbar() {
         {/* Footer */}
         {items.length > 0 && (
           <div className="p-6 border-t border-outline-variant/20 space-y-4 bg-surface-container-lowest">
+            {bundleActive && (
+              <div className="flex items-center gap-1.5 text-xs font-bold text-secondary bg-soft-mint px-3 py-1.5 rounded-full w-fit">
+                <Icon name="local_offer" className="text-[14px]" fill />
+                Bundle Deal — etui w cenie zestawu
+              </div>
+            )}
             <div className="flex justify-between font-bold text-tech-blue text-lg">
               <span>Razem</span>
               <span>{formatPrice(total)}</span>
