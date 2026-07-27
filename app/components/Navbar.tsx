@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import Icon from "./Icon";
 import Logo from "./Logo";
 import { useCart, getLineTotal } from "../lib/cart";
-import { formatPrice, getProduct, DEVICE_ID, TRAVEL_CASE_ID, TRAVEL_CASE_BUNDLE_PRICE, DEVICE_ADDITIONAL_PRICE } from "../lib/products";
+import { formatPrice, getProduct, DEVICE_ID, DEVICE_ADDITIONAL_ID, TRAVEL_CASE_ID, TRAVEL_CASE_BUNDLE_PRICE, DEVICE_ADDITIONAL_PRICE } from "../lib/products";
 
 const NAV_LINKS = [
   { label: "Nauka", href: "/the-science" },
@@ -94,12 +94,13 @@ export default function Navbar() {
   const pathname = usePathname();
   const { items, addToCart, removeFromCart, setQty, total, count, cartOpen, openCart, closeCart } = useCart();
   const travelCase = getProduct(TRAVEL_CASE_ID);
-  const device = getProduct(DEVICE_ID);
+  const additionalDevice = getProduct(DEVICE_ADDITIONAL_ID);
   const hasDevice = items.some((i) => i.product.id === DEVICE_ID);
   const hasCase = items.some((i) => i.product.id === TRAVEL_CASE_ID);
+  const hasAdditionalDevice = items.some((i) => i.product.id === DEVICE_ADDITIONAL_ID);
   const showCaseUpsell = hasDevice && !hasCase && !!travelCase;
-  const showDeviceUpsell = hasDevice && !!device;
-  const bundleActive = hasDevice && hasCase;
+  const showDeviceUpsell = hasDevice && !hasAdditionalDevice && !!additionalDevice;
+  const bundleActive = hasDevice && (hasCase || hasAdditionalDevice);
   const [shopOpen, setShopOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const shopRef = useRef<HTMLDivElement>(null);
@@ -340,9 +341,12 @@ export default function Navbar() {
                     </div>
 
                     {/* Price */}
-                    {product.id === TRAVEL_CASE_ID && product.price === TRAVEL_CASE_BUNDLE_PRICE ? (
+                    {(product.id === TRAVEL_CASE_ID && product.price === TRAVEL_CASE_BUNDLE_PRICE) ||
+                    (product.id === DEVICE_ADDITIONAL_ID && product.price === DEVICE_ADDITIONAL_PRICE) ? (
                       <span className="text-sm">
-                        <span className="text-on-surface-variant/60 line-through mr-1.5">{formatPrice((travelCase?.price ?? product.price) * qty)}</span>
+                        <span className="text-on-surface-variant/60 line-through mr-1.5">
+                          {formatPrice(((product.id === TRAVEL_CASE_ID ? travelCase?.price : additionalDevice?.price) ?? product.price) * qty)}
+                        </span>
                         <span className="font-bold text-secondary">{formatPrice(product.price * qty)}</span>
                       </span>
                     ) : (
@@ -360,20 +364,20 @@ export default function Navbar() {
           <div className="px-6 pb-4 space-y-3">
             <p className="text-xs font-semibold text-on-surface-variant uppercase tracking-wide">Polecane dla Ciebie</p>
 
-            {showDeviceUpsell && device && (
+            {showDeviceUpsell && additionalDevice && (
               <div className="flex items-center gap-3 p-3 bg-soft-mint rounded-2xl border border-vibrant-teal/20">
                 <div className="relative w-14 h-14 bg-white rounded-xl flex-shrink-0 overflow-hidden">
-                  <Image src={device.image} alt="Dodatkowe urządzenie GoodStim" fill sizes="56px" className="object-cover" />
+                  <Image src={additionalDevice.image} alt={additionalDevice.name} fill sizes="56px" className="object-cover" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-primary truncate">Dodatkowe urządzenie GoodStim</p>
                   <p className="text-xs text-on-surface-variant">
-                    <span className="line-through opacity-60 mr-1.5">{formatPrice(device.price)}</span>
+                    <span className="line-through opacity-60 mr-1.5">{formatPrice(additionalDevice.price)}</span>
                     <span className="text-secondary font-bold">{formatPrice(DEVICE_ADDITIONAL_PRICE)}</span>
                   </p>
                 </div>
                 <button
-                  onClick={() => addToCart(device)}
+                  onClick={() => addToCart(additionalDevice)}
                   className="flex-shrink-0 px-4 py-2 bg-tech-blue text-white text-xs font-semibold rounded-full hover:bg-primary transition-colors flex items-center gap-1"
                 >
                   <Icon name="add" className="text-[16px]" />
@@ -412,7 +416,12 @@ export default function Navbar() {
             {bundleActive && (
               <div className="flex items-center gap-1.5 text-xs font-bold text-secondary bg-soft-mint px-3 py-1.5 rounded-full w-fit">
                 <Icon name="local_offer" className="text-[14px]" fill />
-                Bundle Deal — etui w cenie zestawu
+                Bundle Deal —{" "}
+                {hasCase && hasAdditionalDevice
+                  ? "etui i dodatkowe urządzenie w cenie zestawu"
+                  : hasCase
+                  ? "etui w cenie zestawu"
+                  : "dodatkowe urządzenie w cenie zestawu"}
               </div>
             )}
             <div className="flex justify-between font-bold text-tech-blue text-lg">

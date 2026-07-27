@@ -15,12 +15,13 @@ export type Product = {
   priceHistory?: PricePoint[];
 };
 
-// Etui w zestawie z urządzeniem jest tańsze — te stałe napędzają logikę koszyka (lib/cart.tsx)
-// i podpowiedzi cenowe na stronach produktowych.
+// Etui i dodatkowe urządzenie są tańsze w zestawie z głównym urządzeniem — te stałe napędzają
+// logikę koszyka (lib/cart.tsx) i podpowiedzi cenowe na stronach produktowych.
 export const DEVICE_ID = "vns-one";
+export const DEVICE_ADDITIONAL_ID = "vns-one-additional";
 export const TRAVEL_CASE_ID = "travel-case";
 export const TRAVEL_CASE_BUNDLE_PRICE = 39;
-// Cena każdego kolejnego urządzenia GoodStim ponad pierwsze w koszyku (np. drugi zestaw dla partnera).
+// Cena dodatkowego urządzenia GoodStim, gdy jest dodane razem z głównym (np. drugi zestaw dla partnera).
 export const DEVICE_ADDITIONAL_PRICE = 399;
 
 export const PRODUCTS: Product[] = [
@@ -33,6 +34,15 @@ export const PRODUCTS: Product[] = [
     category: "device",
     description: "Zaawansowany stymulator nerwu błędnego. 4 tryby, certyfikaty CE / FCC / RoHS.",
     badge: "Bestseller",
+  },
+  {
+    id: "vns-one-additional",
+    name: "GoodStim VNS One",
+    subtitle: "Dodatkowe urządzenie",
+    price: 550,
+    image: "/product.png",
+    category: "device",
+    description: "Drugi zestaw GoodStim VNS One — do współdzielenia albo na zapas.",
   },
   {
     id: "gel-2pack",
