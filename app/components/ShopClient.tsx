@@ -22,10 +22,10 @@ const IMGS = {
   t3: "/product.png",
 };
 
-// TYMCZASOWE — duża liczba zamówień, więc wysyłki się wydłużają.
-// Usunąć SHIPPING_DELAY_NOTICE (i oba miejsca, które go używają) gdy kolejka się unormuje.
-const SHIPPING_DELAY_NOTICE = true;
-const SHIPPING_DELAY_TEXT = "Obecnie wysyłka może potrwać do 5 dni roboczych — z powodu dużej liczby zamówień.";
+// TYMCZASOWE — włączyć z powrotem (SHIPPING_DELAY_NOTICE = true) i ustawić tekst,
+// gdyby wysyłki znów się wydłużyły (np. duża liczba zamówień).
+const SHIPPING_DELAY_NOTICE = false;
+const SHIPPING_DELAY_TEXT = "";
 
 type DisplayReview = {
   name: string;
