@@ -13,6 +13,8 @@ const NAV_LINKS = [
   { label: "Nauka", href: "/the-science" },
   { label: "Blog", href: "/blog" },
   { label: "Opinie", href: "/#reviews" },
+  { label: "FAQ", href: "/faq" },
+  { label: "Program partnerski", href: "/affiliate" },
 ];
 
 const SHOP_ITEMS = [
