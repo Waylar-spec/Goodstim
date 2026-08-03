@@ -8,6 +8,7 @@ import Icon from "./Icon";
 import Logo from "./Logo";
 import { useCart, getLineTotal } from "../lib/cart";
 import { formatPrice, getProduct, DEVICE_ID, DEVICE_ADDITIONAL_ID, TRAVEL_CASE_ID, TRAVEL_CASE_BUNDLE_PRICE, DEVICE_ADDITIONAL_PRICE } from "../lib/products";
+import { trackAddToCart } from "../lib/analytics";
 
 const NAV_LINKS = [
   { label: "Nauka", href: "/the-science" },
@@ -379,7 +380,10 @@ export default function Navbar() {
                   </p>
                 </div>
                 <button
-                  onClick={() => addToCart(additionalDevice)}
+                  onClick={() => {
+                    addToCart(additionalDevice);
+                    trackAddToCart({ id: additionalDevice.id, name: additionalDevice.name, price: DEVICE_ADDITIONAL_PRICE });
+                  }}
                   className="flex-shrink-0 px-4 py-2 bg-tech-blue text-white text-xs font-semibold rounded-full hover:bg-primary transition-colors flex items-center gap-1"
                 >
                   <Icon name="add" className="text-[16px]" />
@@ -401,7 +405,10 @@ export default function Navbar() {
                   </p>
                 </div>
                 <button
-                  onClick={() => addToCart(travelCase)}
+                  onClick={() => {
+                    addToCart(travelCase);
+                    trackAddToCart({ id: travelCase.id, name: travelCase.name, price: TRAVEL_CASE_BUNDLE_PRICE });
+                  }}
                   className="flex-shrink-0 px-4 py-2 bg-tech-blue text-white text-xs font-semibold rounded-full hover:bg-primary transition-colors flex items-center gap-1"
                 >
                   <Icon name="add" className="text-[16px]" />
