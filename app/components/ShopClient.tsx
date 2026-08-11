@@ -198,6 +198,7 @@ export default function ShopClient() {
                 <div className="flex items-baseline gap-2">
                   <span className="font-montserrat text-[48px] leading-[56px] font-bold text-tech-blue">{formatPrice(MAIN_PRODUCT.price)}</span>
                 </div>
+                <p className="text-xs font-semibold text-secondary -mt-4">Podobne stymulatory nerwu błędnego na rynku kosztują nawet 2× więcej</p>
                 <div className="space-y-4">
                   <button
                     ref={buyBtnRef}
@@ -223,6 +224,8 @@ export default function ShopClient() {
                   {[
                     { icon: "battery_charging_full", label: "Bateria 500 mAh" },
                     { icon: "smartphone", label: "Sterowanie z aplikacji" },
+                    { icon: "verified", label: "2 lata rękojmi" },
+                    { icon: "workspace_premium", label: "Certyfikat CE / FCC" },
                   ].map((f) => (
                     <div key={f.label} className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-soft-mint flex items-center justify-center">
