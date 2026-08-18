@@ -22,14 +22,18 @@ export const DEVICE_ADDITIONAL_ID = "vns-one-additional";
 export const TRAVEL_CASE_ID = "travel-case";
 export const TRAVEL_CASE_BUNDLE_PRICE = 39;
 // Cena dodatkowego urządzenia GoodStim, gdy jest dodane razem z głównym (np. drugi zestaw dla partnera).
-export const DEVICE_ADDITIONAL_PRICE = 399;
+// Przeliczone proporcjonalnie do ceny głównego urządzenia — utrzymuje ten sam ~27% rabat co przy 550 zł (399 zł).
+export const DEVICE_ADDITIONAL_PRICE = 255;
+// Stała opłata za wysyłkę, doliczana przy kasie — jedno miejsce, żeby nie rozjeżdżała się
+// między checkoutem, JSON-LD i feedem Google Merchant.
+export const SHIPPING_FEE = 20;
 
 export const PRODUCTS: Product[] = [
   {
     id: "vns-one",
     name: "GoodStim VNS One",
     subtitle: "Edycja Deep Relax",
-    price: 550,
+    price: 350,
     image: "/product.png",
     category: "device",
     description: "Zaawansowany stymulator nerwu błędnego. 4 tryby, certyfikaty CE / FCC / RoHS.",
@@ -39,7 +43,7 @@ export const PRODUCTS: Product[] = [
     id: "vns-one-additional",
     name: "GoodStim VNS One",
     subtitle: "Dodatkowe urządzenie",
-    price: 550,
+    price: 350,
     image: "/product.png",
     category: "device",
     description: "Drugi zestaw GoodStim VNS One — do współdzielenia albo na zapas.",

@@ -5,6 +5,9 @@ import Image from "next/image";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import { getPost, getAllSlugs, getRelated, BLOG_IMAGES } from "../../lib/blog";
+import { PRODUCTS } from "../../lib/products";
+
+const PRICE_PLN = PRODUCTS.find((p) => p.id === "vns-one")!.price;
 
 export function generateStaticParams() {
   return getAllSlugs().map((slug) => ({ slug }));
@@ -114,7 +117,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
               href="/shop"
               className="inline-block bg-vibrant-teal text-white px-8 py-4 rounded-full font-semibold text-sm hover:opacity-90 transition-opacity"
             >
-              Zobacz w sklepie — 550 PLN
+              Zobacz w sklepie — {PRICE_PLN} PLN
             </Link>
           </div>
         </article>

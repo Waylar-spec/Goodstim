@@ -1,6 +1,6 @@
 // Program afiliacyjny GoodStim — struktura poziomów wzorowana na programie ambasadorskim Formeds,
-// przeskalowana do jednego produktu w cenie 550 zł. Poziom liczony ze skumulowanej sprzedaży
-// od początku współpracy (tylko w górę — raz zdobyty poziom nie spada).
+// przeskalowana do jednego produktu w cenie GoodStim VNS One (lib/products.ts). Poziom liczony
+// ze skumulowanej sprzedaży od początku współpracy (tylko w górę — raz zdobyty poziom nie spada).
 
 export type Tier = { name: string; rate: number; minUnits: number };
 

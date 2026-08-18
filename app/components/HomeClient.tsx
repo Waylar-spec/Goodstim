@@ -4,7 +4,6 @@ import Image from "next/image";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import Icon from "./Icon";
-import UrgencyBanner from "./UrgencyBanner";
 import ModesSection from "./ModesSection";
 import BeforeAfterSection from "./BeforeAfterSection";
 import CertsSection from "./CertsSection";
@@ -54,8 +53,6 @@ export default function HomeClient() {
       <Navbar />
 
       <main className="pt-20">
-        <UrgencyBanner />
-
         {/* HERO */}
         <section className="relative min-h-[921px] flex items-center overflow-hidden py-20 lg:py-0">
           <div className="max-w-[1280px] mx-auto px-6 md:px-16 grid lg:grid-cols-2 gap-16 items-center w-full relative z-10">
@@ -237,7 +234,7 @@ export default function HomeClient() {
               {newsletterState === "ok" ? (
                 <div className="flex items-center justify-center gap-3 py-5 px-8 bg-vibrant-teal/20 rounded-xl max-w-lg mx-auto">
                   <span className="text-secondary font-bold text-lg">✓</span>
-                  <p className="text-secondary font-semibold">Zapisano! Sprawdź skrzynkę — kod PREMIERA10 już czeka.</p>
+                  <p className="text-secondary font-semibold">Zapisano! Dziękujemy za dołączenie.</p>
                 </div>
               ) : (
                 <form onSubmit={handleNewsletter} className="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto">
@@ -262,7 +259,7 @@ export default function HomeClient() {
               {newsletterState === "error" && (
                 <p className="text-red-500 text-sm text-center">Coś poszło nie tak. Spróbuj ponownie.</p>
               )}
-              <p className="text-xs text-on-surface-variant/60">Dołącz do newslettera i odbierz 10% rabatu na pierwsze zamówienie.</p>
+              <p className="text-xs text-on-surface-variant/60">Bądź na bieżąco z nowościami i poradami o zdrowiu układu nerwowego.</p>
             </div>
           </div>
           <div className="absolute -right-20 -bottom-20 w-96 h-96 bg-vibrant-teal/10 rounded-full blur-[80px] pointer-events-none" />

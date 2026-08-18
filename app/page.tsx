@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import HomeClient from "./components/HomeClient";
 import { REVIEWS, AGGREGATE_RATING } from "./lib/reviews";
+import { PRODUCTS } from "./lib/products";
+
+const PRICE_PLN = PRODUCTS.find((p) => p.id === "vns-one")!.price;
 
 export const metadata: Metadata = {
   title: "Stymulator Nerwu Błędnego GoodStim — Opinie i Efekty | tVNS",
-  description:
-    "GoodStim — stymulator nerwu błędnego (tVNS) do użytku domowego. Opinie użytkowników: 5,0/5. Mniej stresu, lepszy sen i wyższe HRV w 15 minut dziennie. Cena 550 zł, darmowa dostawa.",
+  description: `GoodStim — stymulator nerwu błędnego (tVNS) do użytku domowego. Opinie użytkowników: 5,0/5. Mniej stresu, lepszy sen i wyższe HRV w 15 minut dziennie. Cena ${PRICE_PLN} zł.`,
   alternates: {
     canonical: "https://goodstim.pl",
   },
@@ -56,7 +58,7 @@ const productJsonLd = {
     "@type": "Offer",
     url: "https://goodstim.pl/shop",
     priceCurrency: "PLN",
-    price: "550.00",
+    price: PRICE_PLN.toFixed(2),
     availability: "https://schema.org/InStock",
   },
   aggregateRating: {

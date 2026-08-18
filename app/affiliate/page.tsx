@@ -7,6 +7,11 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Icon from "../components/Icon";
 import { TIERS } from "../lib/affiliate";
+import { PRODUCTS, formatPrice } from "../lib/products";
+
+const PRICE_PLN = PRODUCTS.find((p) => p.id === "vns-one")!.price;
+const MIN_COMMISSION = Math.round(PRICE_PLN * TIERS[0].rate);
+const MAX_COMMISSION = Math.round(PRICE_PLN * TIERS[TIERS.length - 1].rate * 100) / 100;
 
 const HERO_IMG = "/polecenia/1.png";
 const QUESTIONS_IMG = "/polecenia/2.png";
@@ -23,7 +28,7 @@ const VALUE_PROPS = [
   {
     icon: "payments",
     title: "Wysoka wartość zamówienia",
-    desc: "GoodStim kosztuje 550 zł — jedna sprzedaż to od 55 zł do 137,50 zł prowizji, zależnie od Twojego poziomu. Znacznie więcej niż przy tanich produktach.",
+    desc: `GoodStim kosztuje ${PRICE_PLN} zł — jedna sprzedaż to od ${formatPrice(MIN_COMMISSION)} do ${formatPrice(MAX_COMMISSION)} prowizji, zależnie od Twojego poziomu. Znacznie więcej niż przy tanich produktach.`,
   },
   {
     icon: "spa",
@@ -191,7 +196,7 @@ export default function AffiliatePage() {
               ))}
             </div>
             <p className="text-center text-on-surface-variant text-sm mt-8">
-              Przy cenie 550 zł: Start = 55 zł/sprzedaż, Diamond = 137,50 zł/sprzedaż.
+              Przy cenie {PRICE_PLN} zł: Start = {formatPrice(MIN_COMMISSION)}/sprzedaż, Diamond = {formatPrice(MAX_COMMISSION)}/sprzedaż.
             </p>
           </div>
         </section>

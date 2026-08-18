@@ -5,7 +5,6 @@ import { ReactNode, Suspense } from "react";
 import { Toaster } from "react-hot-toast";
 import SmoothScroll from "./SmoothScroll";
 import CookieBanner from "./CookieBanner";
-import ExitIntentPopup from "./ExitIntentPopup";
 import SocialProof from "./SocialProof";
 import AffiliateTracker from "./AffiliateTracker";
 
@@ -37,7 +36,6 @@ export default function Providers({ children }: { children: ReactNode }) {
           }}
         />
         <CookieBanner />
-        <ExitIntentPopup />
         <SocialProof />
       </SmoothScroll>
     </CartProvider>

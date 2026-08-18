@@ -11,8 +11,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Nieprawidłowy email" }, { status: 400 });
     }
 
-    // Ktoś kto właśnie kupił po pełnej cenie nie powinien dostać maila "Twój kod rabatowy 10%" —
-    // wygląda to nie tak i wkurza klienta. Zapisujemy go cicho, bez maila powitalnego z rabatem.
+    // Ktoś kto właśnie złożył zamówienie nie potrzebuje osobnego maila powitalnego —
+    // dostanie potwierdzenie zamówienia. Zapisujemy go do newslettera cicho, bez tego maila.
     const skipWelcomeEmail = source === "checkout";
 
     // 1. Zapisz do Neon DB (zawsze działa)
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
       await resend.emails.send({
         from,
         to: email,
-        subject: "Witaj w GoodStim — Twój kod rabatowy 10%",
+        subject: "Witaj w GoodStim",
         html: `<!DOCTYPE html>
 <html lang="pl">
 <head><meta charset="utf-8"/></head>
@@ -65,12 +65,8 @@ export async function POST(req: NextRequest) {
           </h1>
           <p style="color:#718096;font-size:15px;line-height:1.7;margin:0 0 32px">
             Dołączyłeś do społeczności GoodStim — ludzi, którzy biorą swój spokój w swoje ręce.
-            Jako podziękowanie, oto Twój kod na <strong style="color:#252537">10% rabatu</strong>:
+            Będziemy Cię informować o nowościach i poradach o zdrowiu układu nerwowego.
           </p>
-          <div style="background:#f7fdf9;border:2px dashed #2AE5A5;padding:24px;border-radius:12px;text-align:center;margin-bottom:32px">
-            <span style="font-size:32px;font-weight:800;color:#0057B8;letter-spacing:4px">PREMIERA10</span>
-            <p style="color:#718096;font-size:13px;margin:8px 0 0">Ważny przez 30 dni · Wpisz przy kasie</p>
-          </div>
           <div style="text-align:center;margin-bottom:32px">
             <a href="https://goodstim.pl/shop" style="display:inline-block;background:#0057B8;color:#ffffff;font-weight:700;font-size:14px;padding:16px 32px;border-radius:50px;text-decoration:none">
               Przejdź do sklepu

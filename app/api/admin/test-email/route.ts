@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { cookies } from "next/headers";
 import { adminOrderEmailHtml } from "../../stripe/webhook/route";
+import { PRODUCTS, SHIPPING_FEE } from "../../../lib/products";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+const TEST_TOTAL = PRODUCTS.find((p) => p.id === "vns-one")!.price + SHIPPING_FEE;
 
 async function isAuthed() {
   const jar = await cookies();
@@ -16,7 +18,7 @@ export async function GET() {
   const { error } = await resend.emails.send({
     from: process.env.RESEND_FROM ?? "GoodStim <onboarding@resend.dev>",
     to: "wojtekdymek95@gmail.com",
-    subject: `💸 +550.00 PLN — zamówienie #GS-TEST01 (TESTOWY)`,
+    subject: `💸 +${TEST_TOTAL.toFixed(2)} PLN — zamówienie #GS-TEST01 (TESTOWY)`,
     html: adminOrderEmailHtml({
       orderNumber: "GS-TEST01",
       customerName: "Jan Kowalski",
@@ -25,7 +27,7 @@ export async function GET() {
       deliveryMethod: "inpost",
       lockerPoint: "WAW98M",
       items: [{ name: "GoodStim VNS One", qty: 1 }],
-      total: 550,
+      total: TEST_TOTAL,
     }),
   });
 

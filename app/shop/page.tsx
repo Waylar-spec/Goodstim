@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import ShopClient from "../components/ShopClient";
 import { REVIEWS, AGGREGATE_RATING } from "../lib/reviews";
+import { PRODUCTS, SHIPPING_FEE, formatPrice } from "../lib/products";
+
+const MAIN_PRODUCT = PRODUCTS.find((p) => p.id === "vns-one")!;
+const PRICE_PLN = MAIN_PRODUCT.price;
 
 export const metadata: Metadata = {
-  title: "Kup GoodStim VNS One — Stymulator Nerwu Błędnego · 550 PLN",
-  description:
-    "GoodStim VNS One to profesjonalny stymulator nerwu błędnego z 50 poziomami intensywności. iOS i Android. Darmowa dostawa, 14 dni gwarancji zwrotu. Sprawdź cenę.",
+  title: `Kup GoodStim VNS One — Stymulator Nerwu Błędnego · ${PRICE_PLN} PLN`,
+  description: `GoodStim VNS One to profesjonalny stymulator nerwu błędnego z 50 poziomami intensywności. iOS i Android. Wysyłka ${formatPrice(SHIPPING_FEE)}, 14 dni gwarancji zwrotu. Sprawdź cenę.`,
   keywords: [
     "stymulator nerwu błędnego cena",
     "kup urządzenie VNS",
@@ -15,8 +18,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "GoodStim VNS One — Stymulator Nerwu Błędnego",
-    description:
-      "Profesjonalny stymulator nerwu błędnego. 50 poziomów intensywności, iOS/Android, bateria 24h. Od 550 PLN z darmową dostawą.",
+    description: `Profesjonalny stymulator nerwu błędnego. 50 poziomów intensywności, iOS/Android, bateria 24h. Od ${PRICE_PLN} PLN.`,
     type: "website",
     locale: "pl_PL",
     siteName: "GoodStim",
@@ -24,8 +26,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "GoodStim VNS One — Stymulator Nerwu Błędnego",
-    description:
-      "Profesjonalny stymulator nerwu błędnego. 50 poziomów, iOS/Android. Od 550 PLN.",
+    description: `Profesjonalny stymulator nerwu błędnego. 50 poziomów, iOS/Android. Od ${PRICE_PLN} PLN.`,
   },
 };
 
@@ -42,13 +43,13 @@ const productJsonLd = {
   offers: {
     "@type": "Offer",
     priceCurrency: "PLN",
-    price: "550",
+    price: String(PRICE_PLN),
     availability: "https://schema.org/InStock",
     itemCondition: "https://schema.org/NewCondition",
     seller: { "@type": "Organization", name: "GoodStim" },
     shippingDetails: {
       "@type": "OfferShippingDetails",
-      shippingRate: { "@type": "MonetaryAmount", value: "0", currency: "PLN" },
+      shippingRate: { "@type": "MonetaryAmount", value: String(SHIPPING_FEE), currency: "PLN" },
       deliveryTime: {
         "@type": "ShippingDeliveryTime",
         handlingTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 1, unitCode: "d" },

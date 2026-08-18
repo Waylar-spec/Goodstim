@@ -6,9 +6,9 @@ interface Coupon {
   label: string;
 }
 
+// Promocyjne kody (PREMIERA10, GOODSTIM10) tymczasowo wyłączone — GSTEST99 zostaje jako
+// wewnętrzne narzędzie do testowania checkoutu, nigdzie nie jest promowane publicznie.
 const COUPONS: Record<string, Coupon> = {
-  PREMIERA10: { discountPct: 10, label: "Rabat powitalny 10%" },
-  GOODSTIM10: { discountPct: 10, label: "Rabat 10%" },
   GSTEST99: { discountPct: 99, label: "Zamówienie testowe 99%" },
 };
 

@@ -7,7 +7,7 @@ import { useSearchParams } from "next/navigation";
 import Icon from "../components/Icon";
 import Logo from "../components/Logo";
 import { useCart, getLineTotal } from "../lib/cart";
-import { formatPrice, getProduct } from "../lib/products";
+import { formatPrice, getProduct, SHIPPING_FEE } from "../lib/products";
 import StripeProvider from "../components/StripeProvider";
 import StripeCheckoutForm from "../components/StripeCheckoutForm";
 import InPostWidget from "../components/InPostWidget";
@@ -59,7 +59,8 @@ function CheckoutPageInner() {
 
   const discountAmount = Math.round(total * discountPct / 100 * 100) / 100;
   const totalAfterDiscount = Math.max(0, total - discountAmount);
-  const amountGrosze = Math.round(totalAfterDiscount * 100);
+  const totalWithShipping = items.length > 0 ? totalAfterDiscount + SHIPPING_FEE : 0;
+  const amountGrosze = Math.round(totalWithShipping * 100);
   const [orderNumber, setOrderNumber] = useState("");
 
   useEffect(() => {
@@ -185,7 +186,7 @@ function CheckoutPageInner() {
         name: `${firstName} ${lastName}`.trim(),
         phone,
         items: items.map(({ product, qty }) => ({ id: product.id, qty })),
-        total: totalAfterDiscount,
+        total: totalWithShipping,
       }),
     }).catch(() => {});
   }
@@ -205,7 +206,7 @@ function CheckoutPageInner() {
   async function sendConfirmation() {
     trackPurchase(
       orderNumber,
-      totalAfterDiscount,
+      totalWithShipping,
       items.map(({ product, qty }) => ({ name: product.name, qty, price: product.price }))
     );
     if (newsletterAccepted && email) {
@@ -236,6 +237,7 @@ function CheckoutPageInner() {
     company_name: companyName,
     nip: nip,
     order_number: orderNumber,
+    shipping_fee: String(SHIPPING_FEE),
     coupon_code: discountPct > 0 ? couponCode.toUpperCase() : "",
     discount_pct: discountPct > 0 ? String(discountPct) : "",
     affiliate_code: couponAffiliateCode || getAffiliateCode(),
@@ -374,8 +376,8 @@ function CheckoutPageInner() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                   {[
-                    { id: "courier" as Delivery, icon: "local_shipping", label: "InPost Kurier", sub: "1–2 dni robocze · Bezpłatna" },
-                    { id: "inpost" as Delivery, icon: "inventory_2", label: "InPost Paczkomat", sub: "1–2 dni robocze · Bezpłatna" },
+                    { id: "courier" as Delivery, icon: "local_shipping", label: "InPost Kurier", sub: `1–2 dni robocze · ${formatPrice(SHIPPING_FEE)}` },
+                    { id: "inpost" as Delivery, icon: "inventory_2", label: "InPost Paczkomat", sub: `1–2 dni robocze · ${formatPrice(SHIPPING_FEE)}` },
                   ].map((opt) => (
                     <button key={opt.id} type="button" onClick={() => { setDelivery(opt.id); setSelectedLocker(null); }}
                       className={`flex items-center gap-4 p-5 rounded-2xl border-2 transition-all text-left ${delivery === opt.id ? "border-vibrant-teal bg-white shadow-sm" : "border-outline-variant/30 bg-white hover:bg-surface-container-low"}`}
@@ -618,8 +620,8 @@ function CheckoutPageInner() {
                           <span>-{formatPrice(discountAmount)}</span>
                         </div>
                       )}
-                      <div className="flex justify-between text-base text-on-surface-variant"><span>Dostawa</span><span className="text-vibrant-teal font-semibold">Bezpłatna</span></div>
-                      <div className="flex justify-between font-montserrat text-xl font-bold text-primary pt-2"><span>Razem</span><span>{formatPrice(totalAfterDiscount)}</span></div>
+                      <div className="flex justify-between text-base text-on-surface-variant"><span>Dostawa</span><span>{formatPrice(SHIPPING_FEE)}</span></div>
+                      <div className="flex justify-between font-montserrat text-xl font-bold text-primary pt-2"><span>Razem</span><span>{formatPrice(totalWithShipping)}</span></div>
 
                       {/* Kod rabatowy */}
                       <div className="pt-2">

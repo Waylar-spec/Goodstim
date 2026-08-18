@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { PRODUCTS, DEVICE_ADDITIONAL_ID } from "../../../lib/products";
+import { PRODUCTS, DEVICE_ADDITIONAL_ID, SHIPPING_FEE } from "../../../lib/products";
 
 const BASE = "https://goodstim.pl";
 
@@ -7,7 +7,7 @@ const BASE = "https://goodstim.pl";
 // biorą się bezpośrednio z lib/products.ts (PRODUCTS), żeby feed nigdy nie rozjechał się ze stroną.
 const FEED_META: Record<string, { description: string; mpn: string; googleCategory: string; productType: string; link: string }> = {
   "vns-one": {
-    description: "Zaawansowany stymulator nerwu błędnego (tVNS) do codziennego użytku. 4 tryby pracy, 50 poziomów intensywności 1–50 mA, aplikacja iOS/Android, bateria na 24h, materiał hipoalergiczny. Certyfikaty CE/FCC/RoHS. Darmowa dostawa InPost.",
+    description: "Zaawansowany stymulator nerwu błędnego (tVNS) do codziennego użytku. 4 tryby pracy, 50 poziomów intensywności 1–50 mA, aplikacja iOS/Android, bateria na 24h, materiał hipoalergiczny. Certyfikaty CE/FCC/RoHS. Wysyłka InPost 20 zł.",
     mpn: "GS-VNS-ONE-001",
     googleCategory: "491", // Health & Beauty > Health Care
     productType: "Urządzenia wellness > Stymulatory nerwu błędnego",
@@ -65,12 +65,12 @@ export async function GET() {
       <g:shipping>
         <g:country>PL</g:country>
         <g:service>InPost Paczkomat</g:service>
-        <g:price>0.00 PLN</g:price>
+        <g:price>${SHIPPING_FEE.toFixed(2)} PLN</g:price>
       </g:shipping>
       <g:shipping>
         <g:country>PL</g:country>
         <g:service>InPost Kurier</g:service>
-        <g:price>0.00 PLN</g:price>
+        <g:price>${SHIPPING_FEE.toFixed(2)} PLN</g:price>
       </g:shipping>
     </item>`;
   }).join("\n");

@@ -210,7 +210,7 @@ export default function ShopClient() {
                   </button>
                   <p className="text-center text-xs text-on-surface-variant flex items-center justify-center gap-2">
                     <Icon name="local_shipping" className="text-[16px]" />
-                    Darmowa dostawa i 14-dniowa gwarancja zwrotu
+                    Wysyłka 20 zł · 14-dniowa gwarancja zwrotu
                   </p>
                   {SHIPPING_DELAY_NOTICE && (
                     <p className="text-center text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 flex items-center justify-center gap-2">
