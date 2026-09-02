@@ -108,7 +108,7 @@ export const REVIEWS: Review[] = [
   {
     name: "Monika Ł.",
     location: "Toruń",
-    text: "Prosta rzecz, a robi różnicę — 20 minut wieczorem i śpię spokojniej całą noc. Polecam osobom z natłokiem myśli przed snem.",
+    text: "Prosta rzecz, a robi różnicę — 4 minuty wieczorem i śpię spokojniej całą noc. Polecam osobom z natłokiem myśli przed snem.",
     date: "Luty 2026",
     rating: 5,
   },

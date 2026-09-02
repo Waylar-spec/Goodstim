@@ -106,7 +106,7 @@ export default function ModesSection() {
                 className={`flex items-center gap-1.5 text-xs font-semibold ${mode.timeColor}`}
               >
                 <Icon name="timer" className="text-[16px]" />
-                Sesja 20 min
+                Sesja 4 min
               </div>
             </div>
           ))}

@@ -21,7 +21,7 @@ export const FAQS = [
   },
   {
     q: "Ile trwa sesja i jak często można używać?",
-    a: "Każdy tryb to sesja 20-minutowa — urządzenie wyłącza się automatycznie po jej zakończeniu. Większość użytkowników stosuje 1–2 sesje dziennie. Zalecamy zaczynać od najniższego poziomu intensywności i stopniowo go zwiększać zgodnie z własnym komfortem.",
+    a: "Każdy tryb to sesja 4-minutowa — urządzenie wyłącza się automatycznie po jej zakończeniu. Większość użytkowników stosuje 1–2 sesje dziennie. Zalecamy zaczynać od najniższego poziomu intensywności i stopniowo go zwiększać zgodnie z własnym komfortem.",
   },
   {
     q: "Jak długo ładuje się bateria i ile sesji wytrzyma?",

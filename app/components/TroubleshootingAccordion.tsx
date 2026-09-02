@@ -21,7 +21,7 @@ const ITEMS = [
   },
   {
     q: "Sesja urwała się w połowie",
-    a: "Każdy tryb wyłącza się automatycznie po 20 minutach — to normalne zakończenie, nie awaria. Jeśli urządzenie wyłączyło się wcześniej, sprawdź poziom baterii.",
+    a: "Każdy tryb wyłącza się automatycznie po 4 minutach — to normalne zakończenie, nie awaria. Jeśli urządzenie wyłączyło się wcześniej, sprawdź poziom baterii.",
   },
 ] as const;
 

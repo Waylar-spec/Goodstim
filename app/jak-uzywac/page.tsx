@@ -48,7 +48,7 @@ const STEPS = [
     n: "4",
     icon: "self_improvement",
     title: "Zrelaksuj się",
-    desc: "Sesja trwa 20 minut i kończy się automatycznie. Poczuj delikatne impulsy synchronizujące oddech i tętno.",
+    desc: "Sesja trwa 4 minuty i kończy się automatycznie. Poczuj delikatne impulsy synchronizujące oddech i tętno.",
   },
 ] as const;
 
@@ -128,50 +128,24 @@ export default function HowToUsePage() {
           </div>
         </section>
 
-        {/* ZANIM ZACZNIESZ + DIAGRAM */}
+        {/* ZANIM ZACZNIESZ */}
+        {/* TODO: dodać grafikę z Claude Design (pozycjonowanie elektrod na szyi) w drugiej kolumnie, grid lg:grid-cols-2 */}
         <section className="bg-surface-container-low py-24 mb-24">
-          <div className="max-w-[1280px] mx-auto px-6 md:px-16 grid lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <h2 className="font-montserrat text-[28px] leading-[36px] font-semibold text-tech-blue mb-6">Zanim zaczniesz</h2>
-              <div className="space-y-5">
-                {[
-                  { icon: "battery_charging_full", text: "Naładuj urządzenie w pełni przed pierwszym użyciem — zajmuje to ok. godziny." },
-                  { icon: "face", text: "Oczyść skórę szyi z kosmetyków i osusz ją — poprawia to kontakt elektrod." },
-                  { icon: "sensors", text: "Elektrody umieść po bokach szyi, tam gdzie najłatwiej wyczuć puls." },
-                ].map((row) => (
-                  <div key={row.text} className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center flex-shrink-0 border border-outline-variant/20">
-                      <Icon name={row.icon} className="text-secondary text-[20px]" />
-                    </div>
-                    <p className="text-base text-on-surface-variant leading-relaxed pt-1.5">{row.text}</p>
+          <div className="max-w-[1280px] mx-auto px-6 md:px-16 max-w-2xl">
+            <h2 className="font-montserrat text-[28px] leading-[36px] font-semibold text-tech-blue mb-6">Zanim zaczniesz</h2>
+            <div className="space-y-5">
+              {[
+                { icon: "battery_charging_full", text: "Naładuj urządzenie w pełni przed pierwszym użyciem — zajmuje to ok. godziny." },
+                { icon: "face", text: "Oczyść skórę szyi z kosmetyków i osusz ją — poprawia to kontakt elektrod." },
+                { icon: "sensors", text: "Elektrody umieść po bokach szyi, tam gdzie najłatwiej wyczuć puls." },
+              ].map((row) => (
+                <div key={row.text} className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center flex-shrink-0 border border-outline-variant/20">
+                    <Icon name={row.icon} className="text-secondary text-[20px]" />
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Prosty diagram: sylwetka szyi + opaska + punkty elektrod */}
-            <div className="flex items-center justify-center">
-              <svg viewBox="0 0 320 320" width="280" height="280" className="max-w-full">
-                <circle cx="160" cy="160" r="150" fill="#ffffff" stroke="#dde2e7" />
-                {/* Sylwetka */}
-                <path d="M 110 320 C 110 250 100 220 100 190 C 100 150 125 125 160 125 C 195 125 220 150 220 190 C 220 220 210 250 210 320 Z" fill="#e8ebee" />
-                <circle cx="160" cy="90" r="45" fill="#e8ebee" />
-                {/* Opaska GoodStim */}
-                <path d="M 90 178 A 70 70 0 1 1 230 178" fill="none" stroke="#1a2332" strokeWidth="14" strokeLinecap="round" />
-                <circle cx="90" cy="178" r="12" fill="#1a2332" />
-                <circle cx="230" cy="178" r="12" fill="#1a2332" />
-                <circle cx="90" cy="178" r="5" fill="#2ecc71" />
-                <circle cx="230" cy="178" r="5" fill="#2ecc71" />
-                {/* Etykiety */}
-                <line x1="90" y1="178" x2="50" y2="210" stroke="#8a94a0" strokeWidth="1.5" />
-                <circle cx="50" cy="210" r="10" fill="#26a95e" />
-                <text x="50" y="214" textAnchor="middle" fontSize="10" fill="#ffffff" fontWeight="700">1</text>
-                <line x1="230" y1="178" x2="270" y2="210" stroke="#8a94a0" strokeWidth="1.5" />
-                <circle cx="270" cy="210" r="10" fill="#26a95e" />
-                <text x="270" y="214" textAnchor="middle" fontSize="10" fill="#ffffff" fontWeight="700">2</text>
-                <text x="50" y="240" textAnchor="middle" fontSize="11" fill="#5a6673">Elektroda</text>
-                <text x="270" y="240" textAnchor="middle" fontSize="11" fill="#5a6673">Elektroda</text>
-              </svg>
+                  <p className="text-base text-on-surface-variant leading-relaxed pt-1.5">{row.text}</p>
+                </div>
+              ))}
             </div>
           </div>
         </section>
