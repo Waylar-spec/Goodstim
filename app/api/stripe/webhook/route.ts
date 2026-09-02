@@ -92,6 +92,56 @@ export function adminOrderEmailHtml(params: {
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
+// Śledzenie GA4/Google Ads po stronie przeglądarki gubi część realnych zakupów — adblocki,
+// Safari ITP, zamknięcie karty w trakcie przekierowania 3D Secure. Ten webhook wie o zamówieniu
+// na pewno (Stripe je potwierdził), więc wysyłamy `purchase` też stąd, przez GA4 Measurement
+// Protocol — niezależnie od tego, co zrobiła przeglądarka klienta.
+async function sendGA4Purchase(params: {
+  clientId: string;
+  gclid: string;
+  orderNumber: string;
+  total: number;
+  items: { name: string; qty: number; price: number }[];
+}) {
+  const measurementId = process.env.NEXT_PUBLIC_GA4_ID;
+  const apiSecret = process.env.GA4_API_SECRET;
+  if (!measurementId || !apiSecret) return;
+
+  // Bez prawdziwego client_id z cookie _ga zdarzenie i tak trafi do GA4, ale jako sesja
+  // niepowiązana z resztą wizyty — lepsze to niż nic, więc generujemy losowy fallback.
+  const clientId = params.clientId || crypto.randomUUID();
+
+  try {
+    await fetch(
+      `https://www.google-analytics.com/mp/collect?measurement_id=${measurementId}&api_secret=${apiSecret}`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          client_id: clientId,
+          events: [
+            {
+              name: "purchase",
+              params: {
+                transaction_id: params.orderNumber,
+                currency: "PLN",
+                value: params.total,
+                ...(params.gclid ? { gclid: params.gclid } : {}),
+                items: params.items.map((i) => ({
+                  item_name: i.name,
+                  price: i.price,
+                  quantity: i.qty,
+                })),
+              },
+            },
+          ],
+        }),
+      }
+    );
+  } catch (e) {
+    console.error("GA4 Measurement Protocol error:", e);
+  }
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.text();
   const sig = req.headers.get("stripe-signature");
@@ -160,6 +210,15 @@ export async function POST(req: NextRequest) {
     if (!isNewOrder) {
       return NextResponse.json({ received: true, duplicate: true });
     }
+
+    // Nie blokuje reszty webhooka — jeśli GA4 padnie, zamówienie i tak ma się przetworzyć dalej.
+    sendGA4Purchase({
+      clientId: meta.ga_client_id ?? "",
+      gclid: meta.gclid ?? "",
+      orderNumber,
+      total: totalPln,
+      items: items.map((i: { name: string; qty: number; price: number }) => ({ name: i.name, qty: i.qty, price: i.price })),
+    });
 
     const base = process.env.NEXT_PUBLIC_BASE_URL ?? "";
 

@@ -7,7 +7,6 @@ import { loadStripe } from "@stripe/stripe-js";
 import Icon from "../../components/Icon";
 import Logo from "../../components/Logo";
 import { useCart } from "../../lib/cart";
-import { trackPurchase } from "../../lib/analytics";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -15,7 +14,7 @@ type View = "loading" | "success" | "processing" | "failed" | "none";
 
 function SuccessInner() {
   const params = useSearchParams();
-  const { items, clearCart } = useCart();
+  const { clearCart } = useCart();
   const [view, setView] = useState<View>("loading");
 
   useEffect(() => {
@@ -31,21 +30,10 @@ function SuccessInner() {
       if (cancelled) return;
 
       const status = paymentIntent?.status;
-      const piId = paymentIntent?.id ?? "";
 
       if (status === "succeeded" || status === "processing") {
         setView(status === "succeeded" ? "success" : "processing");
-
-        // GA4 purchase — raz na płatność (guard po ID intentu)
-        const guardKey = `gs_purchase_${piId}`;
-        if (piId && typeof window !== "undefined" && !sessionStorage.getItem(guardKey)) {
-          sessionStorage.setItem(guardKey, "1");
-          trackPurchase(
-            piId,
-            (paymentIntent?.amount ?? 0) / 100,
-            items.map(({ product, qty }) => ({ name: product.name, qty, price: product.price }))
-          );
-        }
+        // GA4 "purchase" wysyła webhook Stripe (server-side) — nie duplikujemy go tutaj.
         clearCart();
       } else {
         setView("failed");

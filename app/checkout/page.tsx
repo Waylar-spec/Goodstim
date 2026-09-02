@@ -11,7 +11,7 @@ import { formatPrice, getProduct, SHIPPING_FEE } from "../lib/products";
 import StripeProvider from "../components/StripeProvider";
 import StripeCheckoutForm from "../components/StripeCheckoutForm";
 import InPostWidget from "../components/InPostWidget";
-import { trackBeginCheckout, trackPurchase } from "../lib/analytics";
+import { trackBeginCheckout } from "../lib/analytics";
 
 type Delivery = "courier" | "inpost";
 
@@ -28,6 +28,23 @@ function getAffiliateCode(): string {
   if (typeof document === "undefined") return "";
   const match = document.cookie.match(/(?:^|;\s*)gs_ref=([^;]+)/);
   return match ? decodeURIComponent(match[1]) : "";
+}
+
+function getGclid(): string {
+  if (typeof document === "undefined") return "";
+  const match = document.cookie.match(/(?:^|;\s*)gs_gclid=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : "";
+}
+
+// client_id GA4 z cookie _ga (format "GA1.1.<losowa>.<timestamp>") — Measurement Protocol
+// potrzebuje tylko dwóch ostatnich segmentów, żeby serwerowa konwersja trafiła do tej samej
+// sesji/użytkownika co reszta zdarzeń z przeglądarki.
+function getGa4ClientId(): string {
+  if (typeof document === "undefined") return "";
+  const match = document.cookie.match(/(?:^|;\s*)_ga=([^;]+)/);
+  if (!match) return "";
+  const parts = decodeURIComponent(match[1]).split(".");
+  return parts.length >= 2 ? parts.slice(-2).join(".") : "";
 }
 
 function CheckoutPageInner() {
@@ -204,11 +221,9 @@ function CheckoutPageInner() {
   ];
 
   async function sendConfirmation() {
-    trackPurchase(
-      orderNumber,
-      totalWithShipping,
-      items.map(({ product, qty }) => ({ name: product.name, qty, price: product.price }))
-    );
+    // GA4 "purchase" wysyła teraz wyłącznie webhook Stripe (server-side, przez Measurement
+    // Protocol) — niezawodny niezależnie od adblocków/Safari ITP/zamkniętej karty. Nie
+    // duplikujemy go tutaj.
     if (newsletterAccepted && email) {
       await fetch("/api/email/newsletter", {
         method: "POST",
@@ -241,6 +256,8 @@ function CheckoutPageInner() {
     coupon_code: discountPct > 0 ? couponCode.toUpperCase() : "",
     discount_pct: discountPct > 0 ? String(discountPct) : "",
     affiliate_code: couponAffiliateCode || getAffiliateCode(),
+    ga_client_id: getGa4ClientId(),
+    gclid: getGclid(),
     items_json: JSON.stringify(items.map(({ product, qty }) => ({
       name: product.name, subtitle: product.subtitle, qty, price: product.price,
     }))),
