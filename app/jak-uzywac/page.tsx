@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Icon from "../components/Icon";
@@ -129,23 +130,35 @@ export default function HowToUsePage() {
         </section>
 
         {/* ZANIM ZACZNIESZ */}
-        {/* TODO: dodać grafikę z Claude Design (pozycjonowanie elektrod na szyi) w drugiej kolumnie, grid lg:grid-cols-2 */}
+        {/* TODO: podmienić zdjęcie na grafikę z Claude Design (pozycjonowanie elektrod na szyi), gdy będzie gotowa */}
         <section className="bg-surface-container-low py-24 mb-24">
-          <div className="max-w-[1280px] mx-auto px-6 md:px-16 max-w-2xl">
-            <h2 className="font-montserrat text-[28px] leading-[36px] font-semibold text-tech-blue mb-6">Zanim zaczniesz</h2>
-            <div className="space-y-5">
-              {[
-                { icon: "battery_charging_full", text: "Naładuj urządzenie w pełni przed pierwszym użyciem — zajmuje to ok. godziny." },
-                { icon: "face", text: "Oczyść skórę szyi z kosmetyków i osusz ją — poprawia to kontakt elektrod." },
-                { icon: "sensors", text: "Elektrody umieść po bokach szyi, tam gdzie najłatwiej wyczuć puls." },
-              ].map((row) => (
-                <div key={row.text} className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center flex-shrink-0 border border-outline-variant/20">
-                    <Icon name={row.icon} className="text-secondary text-[20px]" />
+          <div className="max-w-[1280px] mx-auto px-6 md:px-16 grid lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <h2 className="font-montserrat text-[28px] leading-[36px] font-semibold text-tech-blue mb-6">Zanim zaczniesz</h2>
+              <div className="space-y-5">
+                {[
+                  { icon: "battery_charging_full", text: "Naładuj urządzenie w pełni przed pierwszym użyciem — zajmuje to ok. godziny." },
+                  { icon: "face", text: "Oczyść skórę szyi z kosmetyków i osusz ją — poprawia to kontakt elektrod." },
+                  { icon: "sensors", text: "Elektrody umieść po bokach szyi, tam gdzie najłatwiej wyczuć puls." },
+                ].map((row) => (
+                  <div key={row.text} className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center flex-shrink-0 border border-outline-variant/20">
+                      <Icon name={row.icon} className="text-secondary text-[20px]" />
+                    </div>
+                    <p className="text-base text-on-surface-variant leading-relaxed pt-1.5">{row.text}</p>
                   </div>
-                  <p className="text-base text-on-surface-variant leading-relaxed pt-1.5">{row.text}</p>
-                </div>
-              ))}
+                ))}
+              </div>
+            </div>
+
+            <div className="relative aspect-square rounded-[24px] overflow-hidden bg-white border border-outline-variant/20">
+              <Image
+                src="/produkt-referencje/03-otwarta-przod.webp"
+                alt="GoodStim VNS One — widok z przodu"
+                fill
+                sizes="(max-width: 1024px) 90vw, 560px"
+                className="object-cover"
+              />
             </div>
           </div>
         </section>
