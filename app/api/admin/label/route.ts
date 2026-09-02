@@ -21,10 +21,21 @@ function splitName(fullName: string) {
   return { first_name: parts[0] ?? fullName, last_name: parts.slice(1).join(" ") || parts[0] || fullName };
 }
 
+// Standardowe gabaryty skrytek paczkomatowych InPost — szerokość/długość skrytki jest stała
+// (38x64 cm), różni się tylko głębokość. A starcza na jedno urządzenie, B/C na większe zamówienia
+// (np. 2x GoodStim + etui), które fizycznie nie zmieszczą się w najmniejszej skrytce.
+const PARCEL_SIZES = {
+  A: { length: 380, width: 640, height: 80 },
+  B: { length: 380, width: 640, height: 190 },
+  C: { length: 380, width: 640, height: 410 },
+} as const;
+type ParcelSize = keyof typeof PARCEL_SIZES;
+
 export async function POST(req: NextRequest) {
   if (!await isAuthed()) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { order_id } = await req.json();
+  const { order_id, size } = await req.json();
+  const parcelSize: ParcelSize = size && size in PARCEL_SIZES ? size : "A";
   const sql = getDb();
   const [order] = await sql`SELECT * FROM orders WHERE id = ${order_id}`;
   if (!order) return NextResponse.json({ error: "Brak zamówienia" }, { status: 404 });
@@ -54,8 +65,7 @@ export async function POST(req: NextRequest) {
         },
       }),
     },
-    // Gabaryt A (najmniejsza skrytka paczkomatowa): 8x38x64 cm.
-    parcels: [{ dimensions: { length: 380, width: 640, height: 80, unit: "mm" }, weight: { amount: 0.5, unit: "kg" } }],
+    parcels: [{ dimensions: { ...PARCEL_SIZES[parcelSize], unit: "mm" }, weight: { amount: 0.5, unit: "kg" } }],
     // inpost_courier_standard wymaga podpisanej umowy B2B z InPost — konta bez umowy
     // (prepaid) używają zamiast tego usługi C2C.
     service: isPaczkomat ? "inpost_locker_standard" : "inpost_courier_c2c",
@@ -123,5 +133,6 @@ export async function POST(req: NextRequest) {
     shipment_id: shipmentId,
     shipment_status: data.status,
     shipment: data,
+    parcel_size: parcelSize,
   });
 }

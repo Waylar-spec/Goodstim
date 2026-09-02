@@ -103,6 +103,7 @@ export default function AdminPage() {
   const [selected, setSelected] = useState<Order | null>(null);
   const [labelLoading, setLabelLoading] = useState(false);
   const [labelMsg, setLabelMsg] = useState("");
+  const [labelSize, setLabelSize] = useState<"A" | "B" | "C">("A");
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -345,13 +346,13 @@ export default function AdminPage() {
     if (selected?.id === id) setSelected(s => s ? { ...s, status } : s);
   }
 
-  async function createLabel(order: Order) {
+  async function createLabel(order: Order, size: "A" | "B" | "C" = "A") {
     setLabelLoading(true);
     setLabelMsg("");
     const res = await fetch("/api/admin/label", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ order_id: order.id }),
+      body: JSON.stringify({ order_id: order.id, size }),
     });
     const data = await res.json();
     if (res.ok) {
@@ -651,7 +652,7 @@ export default function AdminPage() {
                       const st = STATUS_LABELS[o.status] ?? { label: o.status, color: "bg-gray-500/20 text-gray-300" };
                       return (
                         <button key={o.id}
-                          onClick={() => { setSelected(o); setLabelMsg(""); }}
+                          onClick={() => { setSelected(o); setLabelMsg(""); setLabelSize("A"); }}
                           className={`w-full text-left p-4 rounded-xl border transition-colors ${selected?.id === o.id ? "border-blue-500 bg-blue-600/10" : "border-white/10 bg-[#111827] hover:border-white/20"}`}
                         >
                           <div className="flex items-start justify-between gap-4">
@@ -799,10 +800,37 @@ export default function AdminPage() {
                   </div>
                   <div className="space-y-2 pt-2 border-t border-white/10">
                     {!selected.shipment_id && !selected.tracking_number && (
-                      <button onClick={() => createLabel(selected)} disabled={labelLoading}
-                        className="w-full bg-yellow-500 hover:bg-yellow-400 disabled:opacity-50 text-black font-semibold py-2.5 rounded-xl text-sm transition-colors">
-                        {labelLoading ? "Tworzę etykietę…" : `🏷️ Utwórz etykietę InPost (${selected.delivery_method === "inpost" ? "Paczkomat" : "Kurier"})`}
-                      </button>
+                      <>
+                        {selected.delivery_method === "inpost" && (
+                          <div>
+                            <p className="text-xs text-gray-400 mb-1.5">Rozmiar skrytki (gabaryt)</p>
+                            <div className="grid grid-cols-3 gap-1.5">
+                              {([
+                                { size: "A", label: "Mała", sub: "8×38×64 cm" },
+                                { size: "B", label: "Średnia", sub: "19×38×64 cm" },
+                                { size: "C", label: "Duża", sub: "41×38×64 cm" },
+                              ] as const).map((opt) => (
+                                <button key={opt.size} type="button" onClick={() => setLabelSize(opt.size)}
+                                  className={`flex flex-col items-center py-2 rounded-xl text-xs font-semibold border transition-colors ${
+                                    labelSize === opt.size
+                                      ? "bg-yellow-500/20 border-yellow-500 text-yellow-400"
+                                      : "bg-[#0d1524] border-white/10 text-gray-400 hover:border-white/25"
+                                  }`}>
+                                  <span>{opt.label}</span>
+                                  <span className="text-[10px] font-normal opacity-70">{opt.sub}</span>
+                                </button>
+                              ))}
+                            </div>
+                            <p className="text-[11px] text-gray-500 mt-1.5">
+                              Kilka produktów w jednym zamówieniu (np. 2× urządzenie + etui) zwykle nie mieści się w gabarycie A — wybierz B lub C.
+                            </p>
+                          </div>
+                        )}
+                        <button onClick={() => createLabel(selected, labelSize)} disabled={labelLoading}
+                          className="w-full bg-yellow-500 hover:bg-yellow-400 disabled:opacity-50 text-black font-semibold py-2.5 rounded-xl text-sm transition-colors">
+                          {labelLoading ? "Tworzę etykietę…" : `🏷️ Utwórz etykietę InPost (${selected.delivery_method === "inpost" ? "Paczkomat" : "Kurier"})`}
+                        </button>
+                      </>
                     )}
                     {selected.shipment_id && !selected.tracking_number && (
                       <>
