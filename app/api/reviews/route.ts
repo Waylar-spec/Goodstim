@@ -10,5 +10,10 @@ export async function GET() {
     ORDER BY submitted_at DESC
     LIMIT 20
   `;
-  return NextResponse.json({ reviews: rows });
+  // Zatwierdzone opinie zmieniają się rzadko — CDN trzyma odpowiedź 5 min, zamiast odpalać
+  // funkcję + zapytanie do Neon przy każdym wejściu na /shop.
+  return NextResponse.json(
+    { reviews: rows },
+    { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" } }
+  );
 }

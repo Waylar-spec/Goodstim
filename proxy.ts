@@ -55,11 +55,14 @@ export function proxy(req: NextRequest) {
   return NextResponse.rewrite(url);
 }
 
+// Proxy w Next 16 to funkcja Node na Vercelu — każde jej wywołanie (także zimny start) zjada
+// Active CPU z limitu Hobby (4h/miesiąc na całe konto). Wcześniej odpalała się na KAŻDEJ
+// stronie, prefetchu linków (_rsc), żądaniu bota i crawlera, mimo że przy wyłączonym maintenance
+// robiła tylko `NextResponse.next()`. Teraz działa wyłącznie tam, gdzie realnie coś sprawdza: /admin.
+//
+// Tryb maintenance (blok wyżej) jest tym samym wyłączony. Żeby go włączyć:
+// ustaw MAINTENANCE_MODE=1 w Vercel ORAZ zamień matcher na szeroki, np.:
+//   "/((?!_next/static|_next/image|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico|css|js|mjs|woff|woff2|ttf|map|txt|xml|json)$).*)"
 export const config = {
-  // Pomijamy statyczne pliki (obrazki, fonty, favicon, robots/sitemap itd.) — i tak są
-  // przepuszczane w kodzie powyżej, więc lepiej w ogóle nie odpalać na nich middleware
-  // (mniej wywołań i Active CPU na Vercel Fluid Compute).
-  matcher: [
-    "/((?!_next/static|_next/image|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico|css|js|mjs|woff|woff2|ttf|map|txt|xml|json)$).*)",
-  ],
+  matcher: ["/admin/:path*"],
 };

@@ -88,7 +88,8 @@ export async function GET() {
   return new NextResponse(xml, {
     headers: {
       "Content-Type": "application/xml; charset=utf-8",
-      "Cache-Control": "public, max-age=43200", // 12h cache
+      // Vercel CDN cache'uje tylko po s-maxage — samo max-age kończyło się funkcją na każde pobranie.
+      "Cache-Control": "public, s-maxage=43200, stale-while-revalidate=86400",
     },
   });
 }
